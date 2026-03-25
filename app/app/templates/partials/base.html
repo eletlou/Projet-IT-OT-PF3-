@@ -10,10 +10,18 @@
 <body class="app-body">
     <div class="app-layout">
         <aside class="sidebar" id="sidebar">
+            <a class="brand-logo-link" href="{{ url_for('dashboard.index') }}">
+                <img
+                    class="brand-logo"
+                    src="{{ url_for('static', filename='img/logo_client_lesviviersdenoirmoutier.png') }}"
+                    alt="Logo Les Viviers de Noirmoutier"
+                >
+            </a>
+
             <div class="brand-card">
-                <p class="brand-eyebrow">LES VIVIERS DE NOIRMOUTIER</p>
-                <h1>Supervision PF3</h1>
-                <p class="brand-copy">Production, maintenance et supervision de la ligne de palettisation.</p>
+                <p class="brand-eyebrow">Supervision client</p>
+                <h1>Les Viviers de Noirmoutier</h1>
+                <p class="brand-copy">Pilotage, maintenance et supervision de la ligne PF3.</p>
             </div>
 
             <nav class="sidebar-nav">
@@ -27,22 +35,46 @@
                 {% endfor %}
             </nav>
 
-            <div class="user-panel">
-                <p class="user-label">Connecte en tant que</p>
-                <h2>{{ session.get('user_name') }}</h2>
-                <p class="user-role">{{ session.get('user_role_label') }}</p>
-                <a class="button button-outline" href="{{ url_for('auth.logout') }}">Se deconnecter</a>
+            <div class="sidebar-footer">
+                <div class="partner-badge">
+                    <span>Integre par</span>
+                    <strong>Lee Integration</strong>
+                </div>
             </div>
         </aside>
 
         <div class="main-shell">
             <header class="topbar">
-                <button class="sidebar-toggle" id="sidebarToggle" type="button">Menu</button>
+                <div class="topbar-main">
+                    <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Ouvrir le menu">Menu</button>
 
-                <div>
-                    <p class="topbar-kicker">{% block page_kicker %}Plateforme web{% endblock %}</p>
-                    <h2 class="topbar-title">{% block page_title %}Tableau de bord{% endblock %}</h2>
-                    <p class="topbar-subtitle">{% block page_subtitle %}Vue synthese de la supervision.{% endblock %}</p>
+                    <div class="topbar-heading">
+                        <p class="topbar-kicker">{% block page_kicker %}Plateforme web{% endblock %}</p>
+                        <h2 class="topbar-title">{% block page_title %}Tableau de bord{% endblock %}</h2>
+                        <p class="topbar-subtitle">{% block page_subtitle %}Vue synthese de la supervision.{% endblock %}</p>
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="topbar-brand-mark">
+                        <img
+                            class="topbar-logo"
+                            src="{{ url_for('static', filename='img/logo_client_lesviviersdenoirmoutier.png') }}"
+                            alt="Logo Les Viviers de Noirmoutier"
+                        >
+                        <div>
+                            <span>Site client</span>
+                            <strong>Les Viviers de Noirmoutier</strong>
+                        </div>
+                    </div>
+
+                    <div class="session-banner">
+                        <span class="session-label">Utilisateur connecte</span>
+                        <strong>{{ session.get('user_name') }}</strong>
+                        <small>{{ session.get('user_role_label') }}</small>
+                    </div>
+
+                    <a class="button button-secondary" href="{{ url_for('auth.logout') }}">Se deconnecter</a>
                 </div>
             </header>
 

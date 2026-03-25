@@ -4,64 +4,82 @@
 
 {% block content %}
 <section class="login-layout">
-    <div class="login-hero">
-        <p class="login-kicker">Ligne robotisee de palettisation</p>
-        <h1>Une supervision claire pour la production et la maintenance</h1>
-        <p>
-            Cette interface regroupe les commandes, les alertes, les interventions
-            preventives et les donnees techniques utiles au client et a l integrateur.
-        </p>
+    <div class="login-card login-card-form">
+        <div class="login-brand-row">
+            <div class="login-client-brand">
+                <img
+                    class="login-client-logo"
+                    src="{{ url_for('static', filename='img/logo_client_lesviviersdenoirmoutier.png') }}"
+                    alt="Logo Les Viviers de Noirmoutier"
+                >
+            </div>
 
-        <div class="login-feature-grid">
-            <article class="feature-card">
-                <h2>Production</h2>
-                <p>Historique des commandes, recettes et avancement des caisses produites.</p>
-            </article>
-            <article class="feature-card">
-                <h2>Maintenance</h2>
-                <p>Plans preventifs, equipements critiques et interventions a suivre.</p>
-            </article>
-            <article class="feature-card">
-                <h2>Supervision</h2>
-                <p>Alertes CPU, variables OPCUA, defauts ligne et logs de la supervision.</p>
-            </article>
+            <div class="login-partner-brand">
+                <span>Integre par</span>
+                <strong>Lee Integration</strong>
+            </div>
         </div>
-    </div>
 
-    <div class="login-card">
         <div class="login-card-header">
-            <p class="login-kicker">Connexion securisee</p>
-            <h2>Acces application</h2>
+            <p class="login-kicker">Supervision PF3</p>
+            <h1>Connexion a l'espace client</h1>
+            <p>
+                Accedez aux vues de production, maintenance et supervision de la ligne
+                depuis une interface claire, simple et prete pour l'exploitation.
+            </p>
         </div>
 
-        <form method="post" class="form-stack">
-            <label for="login">Identifiant</label>
-            <input id="login" name="login" type="text" placeholder="admin" required>
+        <form method="post" class="form-stack login-form">
+            <div class="field-group">
+                <label for="login">Identifiant</label>
+                <input id="login" name="login" type="text" placeholder="Votre identifiant" autocomplete="username" autofocus required>
+            </div>
 
-            <label for="password">Mot de passe</label>
-            <input id="password" name="password" type="password" placeholder="admin1234" required>
+            <div class="field-group">
+                <label for="password">Mot de passe</label>
+                <input id="password" name="password" type="password" placeholder="Votre mot de passe" autocomplete="current-password" required>
+            </div>
 
             <button type="submit" class="button button-full">Se connecter</button>
         </form>
 
-        <div class="account-list">
-            <h3>Comptes de demonstration</h3>
-            <div class="account-item">
-                <span>Administrateur</span>
-                <strong>admin / admin1234</strong>
-            </div>
-            <div class="account-item">
-                <span>Operateur</span>
-                <strong>operateur / operateur1234</strong>
-            </div>
-            <div class="account-item">
-                <span>Responsable</span>
-                <strong>responsable / responsable1234</strong>
-            </div>
-            <div class="account-item">
-                <span>Integrateur</span>
-                <strong>integrateur / integrateur1234</strong>
-            </div>
+        <p class="login-footer-note">Copyright 2026 - Les Viviers de Noirmoutier - Lee Integration</p>
+    </div>
+
+    <div class="login-showcase">
+        <div class="login-showcase-copy">
+            <p class="login-kicker">Application industrielle</p>
+            <h2>Une supervision lisible pour les equipes terrain et les responsables.</h2>
+            <p>
+                Consultez rapidement l'etat de la ligne, la production en cours, les plans
+                de maintenance et les alertes techniques depuis un seul portail.
+            </p>
+        </div>
+
+        <div class="login-highlight-grid">
+            <article class="login-highlight-card">
+                <span>Production</span>
+                <strong>Commandes et cadence</strong>
+                <p>Suivi des OF, progression des caisses et synthese des donnees utiles.</p>
+            </article>
+            <article class="login-highlight-card">
+                <span>Maintenance</span>
+                <strong>Plans et priorites</strong>
+                <p>Lecture immediate des interventions a planifier et des equipements a surveiller.</p>
+            </article>
+            <article class="login-highlight-card">
+                <span>Supervision</span>
+                <strong>Alertes et automatisme</strong>
+                <p>Etat ligne, CPU automate, variables exposees et seuils techniques centralises.</p>
+            </article>
+        </div>
+
+        <div class="login-color-rail" aria-hidden="true">
+            <span class="color-pill color-pill-glaucous"></span>
+            <span class="color-pill color-pill-oak"></span>
+            <span class="color-pill color-pill-denim"></span>
+            <span class="color-pill color-pill-dusk"></span>
+            <span class="color-pill color-pill-ash"></span>
         </div>
     </div>
 </section>
