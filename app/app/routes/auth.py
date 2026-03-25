@@ -14,8 +14,9 @@ def home():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if "user_id" in session:
-        return redirect(url_for("dashboard.index"))
+    if request.method == "GET" and "user_id" in session:
+        current_app.logger.info("Retour force a la page login, session reinitialisee")
+        session.clear()
 
     if request.method == "POST":
         login_value = request.form.get("login", "").strip()
