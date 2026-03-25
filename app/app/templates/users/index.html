@@ -1,0 +1,99 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Utilisateurs{% endblock %}
+{% block page_kicker %}Administration{% endblock %}
+{% block page_title %}Gestion des utilisateurs{% endblock %}
+{% block page_subtitle %}Creation des acces et affectation des roles applicatifs.{% endblock %}
+
+{% block content %}
+<section class="metric-grid">
+    <article class="metric-card">
+        <span>Total utilisateurs</span>
+        <strong>{{ page_data.summary.total_utilisateurs }}</strong>
+        <p>Tous profils confondus</p>
+    </article>
+    <article class="metric-card">
+        <span>Utilisateurs actifs</span>
+        <strong>{{ page_data.summary.utilisateurs_actifs }}</strong>
+        <p>Comptes utilisables</p>
+    </article>
+    {% for role in page_data.role_distribution %}
+        <article class="metric-card">
+            <span>{{ role.libelle_role }}</span>
+            <strong>{{ role.total }}</strong>
+            <p>Compte(s)</p>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Creation</p>
+                <h3>Nouvel utilisateur</h3>
+            </div>
+        </div>
+
+        <form method="post" class="form-stack compact-form">
+            <label for="nom_complet">Nom complet</label>
+            <input id="nom_complet" name="nom_complet" type="text" required>
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+
+            <label for="login">Login</label>
+            <input id="login" name="login" type="text" required>
+
+            <label for="password">Mot de passe</label>
+            <input id="password" name="password" type="password" required>
+
+            <label for="role_id">Role</label>
+            <select id="role_id" name="role_id" required>
+                <option value="">Choisir un role</option>
+                {% for role in roles %}
+                    <option value="{{ role.id_role }}">{{ role.libelle_role }}</option>
+                {% endfor %}
+            </select>
+
+            <button class="button button-full" type="submit">Creer l'utilisateur</button>
+        </form>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Acces existants</p>
+                <h3>Liste des utilisateurs</h3>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Login</th>
+                        <th>Role</th>
+                        <th>Email</th>
+                        <th>Etat</th>
+                        <th>Cree le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in page_data.users %}
+                        <tr>
+                            <td>{{ user.nom_complet }}</td>
+                            <td>{{ user.login }}</td>
+                            <td>{{ user.libelle_role }}</td>
+                            <td>{{ user.email }}</td>
+                            <td><span class="status-pill status-{{ 'good' if user.actif else 'error' }}">{{ 'actif' if user.actif else 'inactif' }}</span></td>
+                            <td>{{ user.created_at|datetimefr }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

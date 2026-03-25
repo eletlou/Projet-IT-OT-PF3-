@@ -1,0 +1,187 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Vue d'ensemble{% endblock %}
+{% block page_kicker %}Pilotage global{% endblock %}
+{% block page_title %}Vue d'ensemble{% endblock %}
+{% block page_subtitle %}Synthese temps reel de la ligne robotisee et des actions a suivre.{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div>
+        <p class="hero-badge">Etat ligne : {{ page_data.line_status.etat_ligne }}</p>
+        <h3>{{ page_data.line_status.nom_ligne }}</h3>
+        <p class="hero-copy">
+            Mode {{ page_data.line_status.mode_fonctionnement }} avec une disponibilite de
+            {{ page_data.line_status.disponibilite }}%.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <div>
+            <span>Cadence cible</span>
+            <strong>{{ page_data.line_status.cadence_cible_caisses_h }} caisses/h</strong>
+        </div>
+        <div>
+            <span>Derniere communication</span>
+            <strong>{{ page_data.line_status.derniere_communication|datetimefr }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card">
+        <span>Commandes</span>
+        <strong>{{ page_data.summary.total_commandes }}</strong>
+        <p>{{ page_data.summary.commandes_terminees }} terminees</p>
+    </article>
+    <article class="metric-card">
+        <span>En cours</span>
+        <strong>{{ page_data.summary.commandes_en_cours }}</strong>
+        <p>Production active</p>
+    </article>
+    <article class="metric-card">
+        <span>Alertes ouvertes</span>
+        <strong>{{ page_data.summary.alertes_ouvertes }}</strong>
+        <p>{{ page_data.summary.alertes_critiques }} critiques</p>
+    </article>
+    <article class="metric-card">
+        <span>Maintenance</span>
+        <strong>{{ page_data.summary.maintenances_a_planifier }}</strong>
+        <p>Actions a planifier</p>
+    </article>
+    <article class="metric-card">
+        <span>CPU</span>
+        <strong>{{ page_data.latest_automation.charge_cpu }}%</strong>
+        <p>Derniere mesure automate</p>
+    </article>
+    <article class="metric-card">
+        <span>RAM</span>
+        <strong>{{ page_data.latest_automation.ram_utilisee }}%</strong>
+        <p>Utilisation memoire</p>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Production</p>
+                <h3>Dernieres commandes</h3>
+            </div>
+            <a class="text-link" href="{{ url_for('commands.index') }}">Voir tout</a>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Recette</th>
+                        <th>Statut</th>
+                        <th>Progression</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for command in page_data.recent_commands %}
+                        {% set progress = ((command.quantite_caisses_produite / command.quantite_caisses_demandee) * 100) if command.quantite_caisses_demandee else 0 %}
+                        <tr>
+                            <td>{{ command.reference_commande }}</td>
+                            <td>{{ command.libelle_recette }}</td>
+                            <td><span class="status-pill status-{{ command.statut }}">{{ command.statut }}</span></td>
+                            <td>
+                                <div class="progress-row">
+                                    <div class="progress-bar">
+                                        <span style="width: {{ progress|round(0) }}%;"></span>
+                                    </div>
+                                    <small>{{ command.quantite_caisses_produite }}/{{ command.quantite_caisses_demandee }}</small>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Alerte et maintenance</p>
+                <h3>Priorites du moment</h3>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            {% for alert in page_data.recent_alerts %}
+                <div class="list-card">
+                    <div class="list-row">
+                        <strong>{{ alert.source_alerte }}</strong>
+                        <span class="status-pill status-{{ alert.niveau_alerte }}">{{ alert.niveau_alerte }}</span>
+                    </div>
+                    <p>{{ alert.message_alerte }}</p>
+                    <small>{{ alert.date_creation|datetimefr }} • {{ alert.statut_alerte }}</small>
+                </div>
+            {% endfor %}
+
+            {% for item in page_data.maintenance_focus %}
+                <div class="list-card">
+                    <div class="list-row">
+                        <strong>{{ item.nom_equipement }}</strong>
+                        <span class="status-pill status-{{ item.statut_plan }}">{{ item.statut_plan }}</span>
+                    </div>
+                    <p>{{ item.libelle_plan }}</p>
+                    <small>{{ item.nb_cycles }} cycles / seuil {{ item.seuil_cycles }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Production courante</p>
+                <h3>Commande active</h3>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-card">
+                <span>Cadence actuelle</span>
+                <strong>{{ page_data.latest_production.cadence_caisses_h }} caisses/h</strong>
+            </div>
+            <div class="detail-card">
+                <span>Caisses produites</span>
+                <strong>{{ page_data.latest_production.caisses_produites }}</strong>
+            </div>
+            <div class="detail-card">
+                <span>Sacs huitres</span>
+                <strong>{{ page_data.latest_production.sacs_huitres_consommes }}</strong>
+            </div>
+            <div class="detail-card">
+                <span>Sacs saint jacques</span>
+                <strong>{{ page_data.latest_production.sacs_st_jacques_consommes }}</strong>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Console</p>
+                <h3>Derniers logs</h3>
+            </div>
+        </div>
+
+        <div class="log-list">
+            {% for log in page_data.recent_logs %}
+                <div class="log-line">
+                    <span class="status-pill status-{{ log.niveau_log|lower }}">{{ log.niveau_log|lower }}</span>
+                    <p>{{ log.message_log }}</p>
+                    <small>{{ log.date_log|datetimefr }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

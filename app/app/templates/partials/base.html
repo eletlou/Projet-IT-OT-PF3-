@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Les Viviers de Noirmoutier{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="app-body">
+    <div class="app-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand-card">
+                <p class="brand-eyebrow">LES VIVIERS DE NOIRMOUTIER</p>
+                <h1>Supervision PF3</h1>
+                <p class="brand-copy">Production, maintenance et supervision de la ligne de palettisation.</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                {% for item in navigation_items %}
+                    <a
+                        href="{{ url_for(item.endpoint) }}"
+                        class="nav-link {% if request.path.startswith(item.prefix) %}nav-link-active{% endif %}"
+                    >
+                        {{ item.label }}
+                    </a>
+                {% endfor %}
+            </nav>
+
+            <div class="user-panel">
+                <p class="user-label">Connecte en tant que</p>
+                <h2>{{ session.get('user_name') }}</h2>
+                <p class="user-role">{{ session.get('user_role_label') }}</p>
+                <a class="button button-outline" href="{{ url_for('auth.logout') }}">Se deconnecter</a>
+            </div>
+        </aside>
+
+        <div class="main-shell">
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebarToggle" type="button">Menu</button>
+
+                <div>
+                    <p class="topbar-kicker">{% block page_kicker %}Plateforme web{% endblock %}</p>
+                    <h2 class="topbar-title">{% block page_title %}Tableau de bord{% endblock %}</h2>
+                    <p class="topbar-subtitle">{% block page_subtitle %}Vue synthese de la supervision.{% endblock %}</p>
+                </div>
+            </header>
+
+            <main class="page-shell">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-stack">
+                            {% for category, message in messages %}
+                                <div class="flash flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

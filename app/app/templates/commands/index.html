@@ -1,0 +1,114 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Commandes{% endblock %}
+{% block page_kicker %}Suivi production{% endblock %}
+{% block page_title %}Commandes et historiques{% endblock %}
+{% block page_subtitle %}Consultation des ordres de fabrication, des recettes et des temps de cycle.{% endblock %}
+
+{% block content %}
+<section class="metric-grid">
+    <article class="metric-card">
+        <span>Total commandes</span>
+        <strong>{{ page_data.summary.total_commandes }}</strong>
+        <p>Historique global</p>
+    </article>
+    <article class="metric-card">
+        <span>Terminees</span>
+        <strong>{{ page_data.summary.commandes_terminees }}</strong>
+        <p>Lots finalises</p>
+    </article>
+    <article class="metric-card">
+        <span>En cours</span>
+        <strong>{{ page_data.summary.commandes_en_cours }}</strong>
+        <p>Production active</p>
+    </article>
+    <article class="metric-card">
+        <span>Energie moyenne</span>
+        <strong>{{ page_data.summary.energie_moyenne }} kWh</strong>
+        <p>Par commande</p>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Cadence</p>
+                <h3>Dernieres mesures de production</h3>
+            </div>
+        </div>
+
+        <div class="mini-chart">
+            {% for point in page_data.production_points %}
+                <div class="chart-item">
+                    <div class="chart-bar" style="height: {{ (point.cadence_caisses_h / 130) * 100 }}%;">
+                        <span>{{ point.cadence_caisses_h|round(0) }}</span>
+                    </div>
+                    <small>{{ point.heure }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Temps de cycle</p>
+                <h3>Focus recent</h3>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            {% for cycle in page_data.cycle_focus %}
+                <div class="list-card">
+                    <div class="list-row">
+                        <strong>{{ cycle.reference_commande }}</strong>
+                        <span>{{ cycle.temps_cycle_moyen_sec }} sec</span>
+                    </div>
+                    <small>Cycle max : {{ cycle.temps_cycle_max_sec }} sec</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <p class="panel-kicker">Historique detaille</p>
+            <h3>Liste des commandes</h3>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Recette</th>
+                    <th>Debut</th>
+                    <th>Fin</th>
+                    <th>Statut</th>
+                    <th>Quantite</th>
+                    <th>Cycle moyen</th>
+                    <th>Energie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for command in page_data.commands %}
+                    <tr>
+                        <td>{{ command.reference_commande }}</td>
+                        <td>{{ command.libelle_recette }}</td>
+                        <td>{{ command.date_debut|datetimefr }}</td>
+                        <td>{{ command.date_fin|datetimefr }}</td>
+                        <td><span class="status-pill status-{{ command.statut }}">{{ command.statut }}</span></td>
+                        <td>{{ command.quantite_caisses_produite }}/{{ command.quantite_caisses_demandee }}</td>
+                        <td>{{ command.temps_cycle_moyen_sec or '-' }} sec</td>
+                        <td>{{ command.energie_kwh }} kWh</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

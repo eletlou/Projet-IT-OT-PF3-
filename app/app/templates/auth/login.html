@@ -1,0 +1,68 @@
+{% extends "partials/auth_base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<section class="login-layout">
+    <div class="login-hero">
+        <p class="login-kicker">Ligne robotisee de palettisation</p>
+        <h1>Une supervision claire pour la production et la maintenance</h1>
+        <p>
+            Cette interface regroupe les commandes, les alertes, les interventions
+            preventives et les donnees techniques utiles au client et a l integrateur.
+        </p>
+
+        <div class="login-feature-grid">
+            <article class="feature-card">
+                <h2>Production</h2>
+                <p>Historique des commandes, recettes et avancement des caisses produites.</p>
+            </article>
+            <article class="feature-card">
+                <h2>Maintenance</h2>
+                <p>Plans preventifs, equipements critiques et interventions a suivre.</p>
+            </article>
+            <article class="feature-card">
+                <h2>Supervision</h2>
+                <p>Alertes CPU, variables OPCUA, defauts ligne et logs de la supervision.</p>
+            </article>
+        </div>
+    </div>
+
+    <div class="login-card">
+        <div class="login-card-header">
+            <p class="login-kicker">Connexion securisee</p>
+            <h2>Acces application</h2>
+        </div>
+
+        <form method="post" class="form-stack">
+            <label for="login">Identifiant</label>
+            <input id="login" name="login" type="text" placeholder="admin" required>
+
+            <label for="password">Mot de passe</label>
+            <input id="password" name="password" type="password" placeholder="admin1234" required>
+
+            <button type="submit" class="button button-full">Se connecter</button>
+        </form>
+
+        <div class="account-list">
+            <h3>Comptes de demonstration</h3>
+            <div class="account-item">
+                <span>Administrateur</span>
+                <strong>admin / admin1234</strong>
+            </div>
+            <div class="account-item">
+                <span>Operateur</span>
+                <strong>operateur / operateur1234</strong>
+            </div>
+            <div class="account-item">
+                <span>Responsable</span>
+                <strong>responsable / responsable1234</strong>
+            </div>
+            <div class="account-item">
+                <span>Integrateur</span>
+                <strong>integrateur / integrateur1234</strong>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

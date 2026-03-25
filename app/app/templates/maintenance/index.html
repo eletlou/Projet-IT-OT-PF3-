@@ -1,0 +1,142 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Maintenance{% endblock %}
+{% block page_kicker %}Maintenance preventive{% endblock %}
+{% block page_title %}Maintenance et equipements{% endblock %}
+{% block page_subtitle %}Planification preventive, suivi des interventions et points de vigilance ligne.{% endblock %}
+
+{% block content %}
+<section class="metric-grid">
+    <article class="metric-card">
+        <span>Planifiees</span>
+        <strong>{{ page_data.summary.planifiees }}</strong>
+        <p>Interventions a venir</p>
+    </article>
+    <article class="metric-card">
+        <span>En retard</span>
+        <strong>{{ page_data.summary.en_retard }}</strong>
+        <p>Actions a rattraper</p>
+    </article>
+    <article class="metric-card">
+        <span>Terminees</span>
+        <strong>{{ page_data.summary.terminees }}</strong>
+        <p>Interventions realisees</p>
+    </article>
+    <article class="metric-card">
+        <span>A surveiller</span>
+        <strong>{{ page_data.summary.a_planifier }}</strong>
+        <p>Equipements proches du seuil</p>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Equipements</p>
+                <h3>Etat du parc</h3>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Equipement</th>
+                        <th>Etat</th>
+                        <th>Cycles</th>
+                        <th>Seuil</th>
+                        <th>Derniere maintenance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equipment in page_data.equipments %}
+                        <tr>
+                            <td>{{ equipment.nom_equipement }}</td>
+                            <td><span class="status-pill status-{{ equipment.statut_plan }}">{{ equipment.etat_equipement }}</span></td>
+                            <td>{{ equipment.nb_cycles }}</td>
+                            <td>{{ equipment.seuil_cycles or '-' }}</td>
+                            <td>{{ equipment.date_derniere_maintenance|datefr }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Planification</p>
+                <h3>Nouvelle intervention</h3>
+            </div>
+        </div>
+
+        {% if can('maintenance_write') %}
+            <form method="post" class="form-stack compact-form">
+                <label for="plan_id">Plan de maintenance</label>
+                <select id="plan_id" name="plan_id" required>
+                    <option value="">Choisir un plan</option>
+                    {% for plan in page_data.plans %}
+                        <option value="{{ plan.id_plan_maint }}">{{ plan.nom_equipement }} - {{ plan.libelle_plan }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="type_intervention">Type d'intervention</label>
+                <select id="type_intervention" name="type_intervention" required>
+                    <option value="preventive">Preventive</option>
+                    <option value="curative">Curative</option>
+                </select>
+
+                <label for="date_planifiee">Date planifiee</label>
+                <input id="date_planifiee" name="date_planifiee" type="date" required>
+
+                <label for="commentaire">Commentaire</label>
+                <textarea id="commentaire" name="commentaire" rows="4" placeholder="Exemple : nettoyage robot avant prise de poste"></textarea>
+
+                <button class="button button-full" type="submit">Planifier l'intervention</button>
+            </form>
+        {% else %}
+            <p class="empty-copy">Ton profil peut consulter la maintenance mais ne peut pas la planifier.</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <p class="panel-kicker">Historique</p>
+            <h3>Interventions</h3>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Equipement</th>
+                    <th>Plan</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Date planifiee</th>
+                    <th>Date realisation</th>
+                    <th>Commentaire</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for intervention in page_data.interventions %}
+                    <tr>
+                        <td>{{ intervention.nom_equipement }}</td>
+                        <td>{{ intervention.libelle_plan or '-' }}</td>
+                        <td>{{ intervention.type_intervention }}</td>
+                        <td><span class="status-pill status-{{ intervention.statut }}">{{ intervention.statut }}</span></td>
+                        <td>{{ intervention.date_planifiee|datefr }}</td>
+                        <td>{{ intervention.date_realisation|datefr }}</td>
+                        <td>{{ intervention.commentaire or '-' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

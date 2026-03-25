@@ -1,0 +1,199 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Supervision{% endblock %}
+{% block page_kicker %}Technique et alertes{% endblock %}
+{% block page_title %}Supervision technique{% endblock %}
+{% block page_subtitle %}Alertes, OPCUA, donnees automate et parametres de seuil.{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div>
+        <p class="hero-badge">Connexion ligne : {{ page_data.line_status.etat_ligne }}</p>
+        <h3>{{ page_data.line_status.nom_ligne }}</h3>
+        <p class="hero-copy">
+            Derniere communication recue le {{ page_data.line_status.derniere_communication|datetimefr }}.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <div>
+            <span>CPU</span>
+            <strong>{{ page_data.latest_autom.charge_cpu }}%</strong>
+        </div>
+        <div>
+            <span>RAM</span>
+            <strong>{{ page_data.latest_autom.ram_utilisee }}%</strong>
+        </div>
+        <div>
+            <span>Temperature</span>
+            <strong>{{ page_data.latest_autom.temperature_cpu }} C</strong>
+        </div>
+    </div>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Alertes</p>
+                <h3>Liste des alertes</h3>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            {% for alert in page_data.alerts %}
+                <div class="list-card">
+                    <div class="list-row">
+                        <strong>{{ alert.source_alerte }}</strong>
+                        <span class="status-pill status-{{ alert.niveau_alerte }}">{{ alert.niveau_alerte }}</span>
+                    </div>
+                    <p>{{ alert.message_alerte }}</p>
+                    <small>
+                        {{ alert.date_creation|datetimefr }}
+                        {% if alert.valeur_mesuree is not none %}
+                            • {{ alert.valeur_mesuree }} {{ alert.unite or '' }}
+                        {% endif %}
+                        • {{ alert.statut_alerte }}
+                    </small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Defauts ligne</p>
+                <h3>Evenements maintenance</h3>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            {% for default in page_data.defaults %}
+                <div class="list-card">
+                    <div class="list-row">
+                        <strong>{{ default.code_defaut }}</strong>
+                        <span class="status-pill status-{{ default.criticite }}">{{ default.criticite }}</span>
+                    </div>
+                    <p>{{ default.description_defaut }}</p>
+                    <small>{{ default.nom_equipement or 'Ligne' }} • {{ default.date_defaut|datetimefr }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Historique automate</p>
+                <h3>Tendances CPU / RAM / temperature</h3>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Heure</th>
+                        <th>CPU</th>
+                        <th>RAM</th>
+                        <th>Temperature</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for point in page_data.autom_history %}
+                        <tr>
+                            <td>{{ point.date_mesure|datetimefr }}</td>
+                            <td>{{ point.charge_cpu }}%</td>
+                            <td>{{ point.ram_utilisee }}%</td>
+                            <td>{{ point.temperature_cpu }} C</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Variables OPCUA</p>
+                <h3>Etat des variables exposees</h3>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Valeur</th>
+                        <th>Qualite</th>
+                        <th>Noeud</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variable in page_data.opcua_variables %}
+                        <tr>
+                            <td>{{ variable.nom_variable }}</td>
+                            <td>{{ variable.valeur_actuelle }} {{ variable.unite or '' }}</td>
+                            <td><span class="status-pill status-{{ variable.qualite }}">{{ variable.qualite }}</span></td>
+                            <td>{{ variable.noeud_opcua }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="content-grid content-grid-two">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Parametrage</p>
+                <h3>Seuils techniques</h3>
+            </div>
+        </div>
+
+        <div class="stack-list">
+            {% for threshold in page_data.thresholds %}
+                <form class="inline-form-card" method="post" action="{{ url_for('supervision.update_threshold_route', threshold_id=threshold.id_seuil_alerte) }}">
+                    <div>
+                        <strong>{{ threshold.indicateur }}</strong>
+                        <p>{{ threshold.niveau }} • seuil courant {{ threshold.valeur_seuil }} {{ threshold.unite }}</p>
+                    </div>
+                    {% if can('thresholds_write') %}
+                        <div class="inline-form-actions">
+                            <input name="valeur_seuil" type="number" step="0.1" value="{{ threshold.valeur_seuil }}" required>
+                            <button class="button" type="submit">Mettre a jour</button>
+                        </div>
+                    {% else %}
+                        <span class="status-pill status-info">lecture seule</span>
+                    {% endif %}
+                </form>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Journal systeme</p>
+                <h3>Derniers logs</h3>
+            </div>
+        </div>
+
+        <div class="log-list">
+            {% for log in page_data.logs %}
+                <div class="log-line">
+                    <span class="status-pill status-{{ log.niveau_log|lower }}">{{ log.niveau_log|lower }}</span>
+                    <p>{{ log.message_log }}</p>
+                    <small>{{ log.date_log|datetimefr }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}
