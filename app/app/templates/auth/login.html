@@ -4,9 +4,10 @@
 
 {% block content %}
 <section class="login-layout">
-    <div class="login-card login-card-form">
+    <div class="login-card login-card-form login-card-compact">
         <div class="login-brand-row">
-            <div class="login-client-brand">
+            <div class="login-brand-tile login-client-brand">
+                <span class="login-brand-label">Site client</span>
                 <img
                     class="login-client-logo"
                     src="{{ url_for('static', filename='img/logo_client_lesviviersdenoirmoutier.png') }}"
@@ -14,9 +15,13 @@
                 >
             </div>
 
-            <div class="login-partner-brand">
-                <span>Integre par</span>
-                <strong>Lee Integration</strong>
+            <div class="login-brand-tile login-partner-brand">
+                <span class="login-brand-label">Integre par</span>
+                <img
+                    class="login-partner-logo"
+                    src="{{ url_for('static', filename='img/logo_lee_integration.png') }}"
+                    alt="Logo Lee Integration"
+                >
             </div>
         </div>
 
@@ -44,43 +49,6 @@
         </form>
 
         <p class="login-footer-note">Copyright 2026 - Les Viviers de Noirmoutier - Lee Integration</p>
-    </div>
-
-    <div class="login-showcase">
-        <div class="login-showcase-copy">
-            <p class="login-kicker">Application industrielle</p>
-            <h2>Une supervision lisible pour les equipes terrain et les responsables.</h2>
-            <p>
-                Consultez rapidement l'etat de la ligne, la production en cours, les plans
-                de maintenance et les alertes techniques depuis un seul portail.
-            </p>
-        </div>
-
-        <div class="login-highlight-grid">
-            <article class="login-highlight-card">
-                <span>Production</span>
-                <strong>Commandes et cadence</strong>
-                <p>Suivi des OF, progression des caisses et synthese des donnees utiles.</p>
-            </article>
-            <article class="login-highlight-card">
-                <span>Maintenance</span>
-                <strong>Plans et priorites</strong>
-                <p>Lecture immediate des interventions a planifier et des equipements a surveiller.</p>
-            </article>
-            <article class="login-highlight-card">
-                <span>Supervision</span>
-                <strong>Alertes et automatisme</strong>
-                <p>Etat ligne, CPU automate, variables exposees et seuils techniques centralises.</p>
-            </article>
-        </div>
-
-        <div class="login-color-rail" aria-hidden="true">
-            <span class="color-pill color-pill-glaucous"></span>
-            <span class="color-pill color-pill-oak"></span>
-            <span class="color-pill color-pill-denim"></span>
-            <span class="color-pill color-pill-dusk"></span>
-            <span class="color-pill color-pill-ash"></span>
-        </div>
     </div>
 </section>
 {% endblock %}

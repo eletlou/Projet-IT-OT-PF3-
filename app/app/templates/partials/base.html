@@ -38,7 +38,11 @@
             <div class="sidebar-footer">
                 <div class="partner-badge">
                     <span>Integre par</span>
-                    <strong>Lee Integration</strong>
+                    <img
+                        class="partner-logo"
+                        src="{{ url_for('static', filename='img/logo_lee_integration.png') }}"
+                        alt="Logo Lee Integration"
+                    >
                 </div>
             </div>
         </aside>
@@ -68,13 +72,15 @@
                         </div>
                     </div>
 
-                    <div class="session-banner">
-                        <span class="session-label">Utilisateur connecte</span>
-                        <strong>{{ session.get('user_name') }}</strong>
-                        <small>{{ session.get('user_role_label') }}</small>
-                    </div>
+                    <div class="topbar-session-tools">
+                        <div class="session-banner">
+                            <span class="session-label">Utilisateur connecte</span>
+                            <strong>{{ session.get('user_name') }}</strong>
+                            <small>{{ session.get('user_role_label') }}</small>
+                        </div>
 
-                    <a class="button button-secondary" href="{{ url_for('auth.logout') }}">Se deconnecter</a>
+                        <a class="button button-logout" href="{{ url_for('auth.logout') }}">Se deconnecter</a>
+                    </div>
                 </div>
             </header>
 

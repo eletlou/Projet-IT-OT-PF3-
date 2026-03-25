@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime
 
-from flask import Flask, session
+from flask import Flask, redirect, request, session, url_for
 
 from app.config import Config
 from app.permissions import get_navigation, has_permission
@@ -33,6 +33,22 @@ def create_app():
             "navigation_items": get_navigation(user_role),
             "can": lambda permission: has_permission(user_role, permission),
         }
+
+    @app.before_request
+    def protect_application_routes():
+        endpoint = request.endpoint
+
+        if not endpoint:
+            return None
+
+        if endpoint == "static" or endpoint.startswith("static"):
+            return None
+
+        if endpoint.startswith("auth."):
+            return None
+
+        if "user_id" not in session:
+            return redirect(url_for("auth.login"))
 
     @app.template_filter("datetimefr")
     def datetimefr(value):
