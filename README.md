@@ -35,23 +35,30 @@ SESSION_SECRET=change_me_session_secret
 
 ## 4. Commandes terminal
 
-### Lancer le projet
+### Lancer le projet simplement
 
 ```bash
-docker compose up --build
+./start.sh
 ```
 
-### Repartir proprement avec la nouvelle base de supervision
+Cette commande suffit pour le lancement courant. Il n'est pas necessaire d'arreter Docker avant de relancer l'application.
+
+### Lancer le projet manuellement
 
 ```bash
-docker compose down -v
-docker compose up --build
+docker compose up --build -d
 ```
 
 ### Arreter le projet
 
 ```bash
-docker compose down
+./stop.sh
+```
+
+### Repartir proprement avec la nouvelle base de supervision
+
+```bash
+./reset.sh
 ```
 
 ## 5. Acces navigateur
