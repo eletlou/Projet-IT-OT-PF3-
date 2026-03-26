@@ -1,73 +1,28 @@
 from werkzeug.security import generate_password_hash
 
-from app.db import execute_query, fetch_all, fetch_one
+from app.repositories.user_repository import (
+    fetch_existing_user,
+    fetch_role_distribution,
+    fetch_roles,
+    fetch_user_by_login,
+    fetch_user_summary,
+    fetch_users,
+    insert_user,
+)
 
 
 def get_user_by_login(login):
-    return fetch_one(
-        """
-        SELECT
-            u.id_utilisateur,
-            u.login,
-            u.mot_de_passe_hash,
-            u.nom_complet,
-            u.email,
-            u.actif,
-            r.code_role,
-            r.libelle_role
-        FROM Utilisateur u
-        JOIN Role r ON r.id_role = u.id_role
-        WHERE u.login = %s
-        """,
-        (login,),
-    )
+    return fetch_user_by_login(login)
 
 
 def get_roles():
-    return fetch_all(
-        """
-        SELECT id_role, code_role, libelle_role
-        FROM Role
-        ORDER BY id_role
-        """
-    )
+    return fetch_roles()
 
 
 def get_users_view_model():
-    users = fetch_all(
-        """
-        SELECT
-            u.login,
-            u.nom_complet,
-            u.email,
-            u.actif,
-            u.created_at,
-            r.libelle_role,
-            r.code_role
-        FROM Utilisateur u
-        JOIN Role r ON r.id_role = u.id_role
-        ORDER BY u.created_at DESC
-        """
-    )
-
-    summary = fetch_one(
-        """
-        SELECT
-            COUNT(*) AS total_utilisateurs,
-            SUM(CASE WHEN actif = 1 THEN 1 ELSE 0 END) AS utilisateurs_actifs
-        FROM Utilisateur
-        """
-    )
-
-    role_distribution = fetch_all(
-        """
-        SELECT r.libelle_role, COUNT(*) AS total
-        FROM Utilisateur u
-        JOIN Role r ON r.id_role = u.id_role
-        GROUP BY r.libelle_role
-        ORDER BY total DESC, r.libelle_role ASC
-        """
-    )
+    users = fetch_users()
+    summary = fetch_user_summary()
+    role_distribution = fetch_role_distribution()
 
     return {
         "users": users,
@@ -77,14 +32,7 @@ def get_users_view_model():
 
 
 def create_user(login, full_name, email, password, role_id):
-    existing_user = fetch_one(
-        """
-        SELECT id_utilisateur
-        FROM Utilisateur
-        WHERE login = %s
-        """,
-        (login,),
-    )
+    existing_user = fetch_existing_user(login)
 
     if existing_user:
         return {
@@ -92,18 +40,12 @@ def create_user(login, full_name, email, password, role_id):
             "message": "Ce login existe deja.",
         }
 
-    execute_query(
-        """
-        INSERT INTO Utilisateur (login, mot_de_passe_hash, nom_complet, email, id_role, actif)
-        VALUES (%s, %s, %s, %s, %s, 1)
-        """,
-        (
-            login,
-            generate_password_hash(password),
-            full_name,
-            email,
-            role_id,
-        ),
+    insert_user(
+        login=login,
+        password_hash=generate_password_hash(password),
+        full_name=full_name,
+        email=email,
+        role_id=role_id,
     )
 
     return {

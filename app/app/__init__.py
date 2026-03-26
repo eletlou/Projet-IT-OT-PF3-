@@ -5,12 +5,7 @@ from flask import Flask, redirect, request, session, url_for
 
 from app.config import Config
 from app.permissions import get_navigation, has_permission
-from app.routes.auth import auth_bp
-from app.routes.commands import commands_bp
-from app.routes.dashboard import dashboard_bp
-from app.routes.maintenance import maintenance_bp
-from app.routes.supervision import supervision_bp
-from app.routes.users import users_bp
+from app.routes import auth_bp, commands_bp, dashboard_bp, maintenance_bp, supervision_bp, users_bp
 
 
 def create_app():

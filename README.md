@@ -98,7 +98,8 @@ SESSION_SECRET=change_me_session_secret
 - `app/run.py` : point d'entree Flask
 - `app/app/__init__.py` : creation et configuration de l'application
 - `app/app/routes/` : routes Flask par module fonctionnel
-- `app/app/services/` : logique metier et acces aux donnees
+- `app/app/services/` : logique metier et orchestration
+- `app/app/repositories/` : requetes SQL et acces aux donnees
 - `app/app/templates/` : pages HTML Jinja2
 - `app/app/static/css/style.css` : styles CSS
 - `app/app/static/js/app.js` : scripts JavaScript
@@ -122,7 +123,7 @@ Points a mettre en avant :
 
 - architecture separee entre application web, base de donnees et outil d'administration
 - securisation minimale par authentification et gestion des droits
-- organisation du code par routes, services, templates et fichiers statiques
+- organisation du code par routes, services, repositories, templates et fichiers statiques
 - base de donnees initialisee automatiquement par scripts SQL
 - lancement simplifie avec des scripts `start`, `stop` et `reset`
 
@@ -133,7 +134,7 @@ Ce projet montre notamment :
 - la comprehension d'une architecture web client / serveur
 - l'utilisation d'une base relationnelle MySQL
 - la mise en place d'une authentification et de roles
-- l'organisation modulaire d'une application Python Flask
+- l'organisation modulaire d'une application Python Flask avec separation routes / services / repositories
 - l'utilisation de Docker Compose pour le lancement et le deploiement local
 
 ## 11. Point important sur les conteneurs

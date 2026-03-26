@@ -1,83 +1,23 @@
-from app.db import execute_query, fetch_all, fetch_one
+from app.repositories.supervision_repository import (
+    fetch_alerts,
+    fetch_automation_history,
+    fetch_defaults,
+    fetch_line_status,
+    fetch_logs,
+    fetch_opcua_variables,
+    fetch_thresholds,
+    update_threshold_value,
+)
 
 
 def get_supervision_view_model():
-    line_status = fetch_one(
-        """
-        SELECT *
-        FROM LigneProd
-        ORDER BY id_ligne DESC
-        LIMIT 1
-        """
-    )
-
-    autom_history = fetch_all(
-        """
-        SELECT *
-        FROM DataAutom
-        ORDER BY date_mesure DESC
-        LIMIT 6
-        """
-    )
-
-    alerts = fetch_all(
-        """
-        SELECT
-            a.id_alerte,
-            a.source_alerte,
-            a.niveau_alerte,
-            a.message_alerte,
-            a.valeur_mesuree,
-            a.statut_alerte,
-            a.date_creation,
-            s.indicateur,
-            s.valeur_seuil,
-            s.unite
-        FROM Alerte a
-        LEFT JOIN SeuilAlerte s ON s.id_seuil_alerte = a.id_seuil_alerte
-        ORDER BY a.date_creation DESC
-        """
-    )
-
-    thresholds = fetch_all(
-        """
-        SELECT *
-        FROM SeuilAlerte
-        ORDER BY indicateur
-        """
-    )
-
-    defaults = fetch_all(
-        """
-        SELECT
-            d.code_defaut,
-            d.criticite,
-            d.description_defaut,
-            d.date_defaut,
-            d.acquitte,
-            e.nom_equipement
-        FROM Defaut d
-        LEFT JOIN Equipement e ON e.id_equipement = d.id_equipement
-        ORDER BY d.date_defaut DESC
-        """
-    )
-
-    opcua_variables = fetch_all(
-        """
-        SELECT *
-        FROM VariableOPCUA
-        ORDER BY nom_variable
-        """
-    )
-
-    logs = fetch_all(
-        """
-        SELECT *
-        FROM ConsolLigne
-        ORDER BY date_log DESC
-        LIMIT 8
-        """
-    )
+    line_status = fetch_line_status()
+    autom_history = fetch_automation_history()
+    alerts = fetch_alerts()
+    thresholds = fetch_thresholds()
+    defaults = fetch_defaults()
+    opcua_variables = fetch_opcua_variables()
+    logs = fetch_logs()
 
     return {
         "line_status": line_status,
@@ -92,11 +32,4 @@ def get_supervision_view_model():
 
 
 def update_threshold(threshold_id, threshold_value):
-    execute_query(
-        """
-        UPDATE SeuilAlerte
-        SET valeur_seuil = %s
-        WHERE id_seuil_alerte = %s
-        """,
-        (threshold_value, threshold_id),
-    )
+    update_threshold_value(threshold_id, threshold_value)
