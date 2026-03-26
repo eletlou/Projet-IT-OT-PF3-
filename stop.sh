@@ -11,8 +11,8 @@ else
     exit 1
 fi
 
-"${COMPOSE_CMD[@]}" down
+"${COMPOSE_CMD[@]}" stop
 
 echo
-echo "Application arretee."
-
+echo "Application mise en pause."
+echo "Les conteneurs sont conserves pour un redemarrage rapide."

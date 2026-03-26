@@ -11,10 +11,15 @@ else
     exit 1
 fi
 
-"${COMPOSE_CMD[@]}" up --build -d
+if "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^web$"; then
+    "${COMPOSE_CMD[@]}" start
+    STATUS_MESSAGE="Application relancee sans recreer les conteneurs."
+else
+    "${COMPOSE_CMD[@]}" up --build -d
+    STATUS_MESSAGE="Application demarree pour la premiere fois."
+fi
 
 echo
-echo "Application demarree."
+echo "${STATUS_MESSAGE}"
 echo "Flask   : http://localhost:5000"
 echo "Adminer : http://localhost:8081"
-
