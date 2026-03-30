@@ -1,0 +1,217 @@
+{% extends "partials/base.html" %}
+
+{% block title %}Test OPC UA{% endblock %}
+{% block page_kicker %}Validation terrain{% endblock %}
+{% block page_title %}Page de test OPC UA WAGO CC100{% endblock %}
+{% block page_subtitle %}Lecture et ecriture temporaires des variables OPC UA pour valider la communication avec l'automate.{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div>
+        <p class="hero-badge">Page temporaire de validation OPC UA</p>
+        <h3>Connexion directe au WAGO CC100</h3>
+        <p class="hero-copy">
+            Cette page est isolee du reste du projet et utilise votre liste de Node IDs pour tester la lecture et l'ecriture
+            sans toucher aux ecrans metier existants. Le test est preconfigure pour le WAGO `172.30.30.20`
+            avec une connexion OPC UA anonyme.
+        </p>
+    </div>
+    <div class="hero-stats">
+        <div>
+            <span>Node IDs charges</span>
+            <strong>{{ page_data.summary.configured_nodes }}</strong>
+        </div>
+        <div>
+            <span>Variables lues</span>
+            <strong>{{ page_data.summary.successful_reads }}</strong>
+        </div>
+        <div>
+            <span>Ecritures possibles</span>
+            <strong>{{ page_data.summary.writable_nodes }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="content-grid opcua-connection-grid">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Connexion OPC UA</p>
+                <h3>Parametres du serveur WAGO</h3>
+            </div>
+        </div>
+
+        <form method="post" action="{{ url_for('supervision.connect_opcua_test_route') }}" class="form-stack">
+            <div class="field-group">
+                <label for="opcua_endpoint">URL du serveur</label>
+                <input
+                    id="opcua_endpoint"
+                    name="endpoint"
+                    type="text"
+                    value="{{ page_data.form_state.endpoint }}"
+                    placeholder="opc.tcp://172.30.30.20:4840"
+                    required
+                >
+            </div>
+
+            <div class="opcua-form-row">
+                <div class="field-group">
+                    <label for="opcua_username">Utilisateur</label>
+                    <input
+                        id="opcua_username"
+                        name="username"
+                        type="text"
+                        value="{{ page_data.form_state.username }}"
+                        placeholder="Optionnel"
+                    >
+                </div>
+
+                <div class="field-group">
+                    <label for="opcua_password">Mot de passe</label>
+                    <input
+                        id="opcua_password"
+                        name="password"
+                        type="password"
+                        value=""
+                        placeholder="Optionnel"
+                    >
+                </div>
+            </div>
+
+            <div class="opcua-action-row">
+                <button class="button" type="submit">Tester la connexion</button>
+                {% if page_data.connection.has_active_settings %}
+                    <button class="button button-secondary" type="submit" formaction="{{ url_for('supervision.refresh_opcua_test_route') }}">Relire les variables</button>
+                {% endif %}
+            </div>
+        </form>
+
+        <p class="opcua-note">Endpoint configure : <code>opc.tcp://172.30.30.20:4840</code> - connexion OPC UA anonyme.</p>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Etat de la session</p>
+                <h3>Resume du test</h3>
+            </div>
+        </div>
+
+        <div class="detail-grid opcua-summary-grid">
+            <div class="detail-card">
+                <span>Connexion active</span>
+                <strong>{{ 'Oui' if page_data.connection.has_active_settings else 'Non' }}</strong>
+                <p>{{ page_data.connection.source_label }}</p>
+            </div>
+
+            <div class="detail-card">
+                <span>Derniere lecture</span>
+                <strong>{{ page_data.summary.last_read_at|datetimefr }}</strong>
+                <p>{{ page_data.summary.failed_reads }} variable(s) en erreur</p>
+            </div>
+
+            <div class="detail-card">
+                <span>Authentification</span>
+                <strong>{{ 'Identifiants fournis' if page_data.connection.has_password else 'Connexion anonyme' }}</strong>
+                <p>Utilisateur : {{ page_data.connection.username or 'aucun' }}</p>
+            </div>
+
+            <div class="detail-card">
+                <span>Source Node IDs</span>
+                <strong>{{ page_data.summary.configured_nodes }}</strong>
+                <p>{{ page_data.node_file_path }}</p>
+            </div>
+        </div>
+
+        {% if page_data.connection.has_active_settings %}
+            <form method="post" action="{{ url_for('supervision.disconnect_opcua_test_route') }}" class="opcua-inline-form">
+                <button class="button button-outline" type="submit">Effacer la connexion memorisee</button>
+            </form>
+        {% endif %}
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <p class="panel-kicker">Variables terrain</p>
+            <h3>Lecture et ecriture des Node IDs fournis</h3>
+        </div>
+    </div>
+
+    {% if page_data.node_file_error %}
+        <p class="empty-copy">{{ page_data.node_file_error }}</p>
+    {% elif page_data.read_error %}
+        <p class="empty-copy">{{ page_data.read_error }}</p>
+    {% elif page_data.variables %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Valeur actuelle</th>
+                        <th>Type</th>
+                        <th>Qualite</th>
+                        <th>Horodatage</th>
+                        <th>Ecriture</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variable in page_data.variables %}
+                        <tr>
+                            <td>
+                                <div class="opcua-variable-meta">
+                                    <strong>{{ variable.display_name }}</strong>
+                                    <small>{{ variable.node_id }}</small>
+                                    {% if variable.error_message %}
+                                        <small>{{ variable.error_message }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ variable.value_display }}</td>
+                            <td>{{ variable.data_type }}</td>
+                            <td>
+                                <span class="status-pill status-{{ variable.status_slug }}">{{ variable.status_label }}</span>
+                            </td>
+                            <td>
+                                <div class="opcua-variable-meta">
+                                    <small>Source : {{ variable.source_timestamp|datetimefr }}</small>
+                                    <small>Serveur : {{ variable.server_timestamp|datetimefr }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if variable.write_supported %}
+                                    <form method="post" action="{{ url_for('supervision.write_opcua_test_value_route') }}" class="opcua-write-form">
+                                        <input type="hidden" name="node_id" value="{{ variable.node_id }}">
+                                        {% if variable.editor_type == 'boolean' %}
+                                            <select name="value_to_write">
+                                                <option value="true" {% if variable.write_value == 'true' %}selected{% endif %}>TRUE</option>
+                                                <option value="false" {% if variable.write_value == 'false' %}selected{% endif %}>FALSE</option>
+                                            </select>
+                                        {% else %}
+                                            <input
+                                                name="value_to_write"
+                                                type="{{ 'number' if variable.editor_type == 'number' else 'text' }}"
+                                                value="{{ variable.write_value }}"
+                                                {% if variable.editor_type == 'number' %}step="any"{% endif %}
+                                                required
+                                            >
+                                        {% endif %}
+                                        <button class="button" type="submit">Ecrire</button>
+                                    </form>
+                                {% else %}
+                                    <span class="status-pill status-info">lecture seule</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-copy">
+            L'endpoint OPC UA du WAGO est deja preconfigure. Lance simplement le test pour lire les variables et valider l'ecriture.
+        </p>
+    {% endif %}
+</section>
+{% endblock %}

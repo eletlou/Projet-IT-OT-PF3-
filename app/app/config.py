@@ -1,6 +1,9 @@
 import os
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 class Config:
     SECRET_KEY = os.getenv("SESSION_SECRET", "dev_secret_key")
     APP_NAME = "Les Viviers de Noirmoutier"
@@ -14,3 +17,13 @@ class Config:
     MYSQL_USER = os.getenv("MYSQL_USER", "root")
     MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
     MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "les_viviers_de_noirmoutier")
+
+    OPCUA_TEST_NODE_FILE = os.getenv(
+        "OPCUA_TEST_NODE_FILE",
+        os.path.join(BASE_DIR, "data", "opcua_test_nodes.txt"),
+    )
+    OPCUA_TEST_ENDPOINT = os.getenv("OPCUA_TEST_ENDPOINT", "opc.tcp://172.30.30.20:4840")
+    OPCUA_TEST_USERNAME = os.getenv("OPCUA_TEST_USERNAME", "")
+    OPCUA_TEST_PASSWORD = os.getenv("OPCUA_TEST_PASSWORD", "")
+    OPCUA_TEST_TIMEOUT = float(os.getenv("OPCUA_TEST_TIMEOUT", "3"))
+    OPCUA_TEST_PORT = int(os.getenv("OPCUA_TEST_PORT", "5051"))

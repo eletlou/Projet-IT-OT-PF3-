@@ -49,5 +49,21 @@ services:
     volumes:
       - ./app:/app
 
+  opcua_test:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: les_viviers_opcua_test
+    restart: unless-stopped
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:-les_viviers_supervision_2026}
+      OPCUA_TEST_ENDPOINT: ${OPCUA_TEST_ENDPOINT:-opc.tcp://172.30.30.20:4840}
+      OPCUA_TEST_PORT: ${OPCUA_TEST_PORT:-5051}
+    command: ["python", "run_opcua_test.py"]
+    ports:
+      - "${OPCUA_TEST_PORT:-5051}:5051"
+    volumes:
+      - ./app:/app
+
 volumes:
   mysql_data:

@@ -13,6 +13,11 @@ fi
 
 if "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^web$"; then
     "${COMPOSE_CMD[@]}" start
+
+    if ! "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^opcua_test$"; then
+        "${COMPOSE_CMD[@]}" up -d --build opcua_test
+    fi
+
     STATUS_MESSAGE="Application relancee sans recreer les conteneurs."
 else
     "${COMPOSE_CMD[@]}" up --build -d
@@ -22,4 +27,5 @@ fi
 echo
 echo "${STATUS_MESSAGE}"
 echo "Flask   : http://localhost:5000"
+echo "OPCUA   : http://localhost:5051"
 echo "Adminer : http://localhost:8081"
