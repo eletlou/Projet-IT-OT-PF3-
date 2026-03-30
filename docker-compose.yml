@@ -10,6 +10,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-les_viviers_de_noirmoutier}
+    ports:
+      - "${MYSQL_PUBLIC_PORT:-3305}:3306"
     volumes:
       - mysql_data_client:/var/lib/mysql
     healthcheck:
