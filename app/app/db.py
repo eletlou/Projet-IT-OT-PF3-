@@ -8,7 +8,7 @@ def get_db_connection():
     """Ouvre une connexion MySQL avec quelques tentatives de reprise au demarrage."""
     last_error = None
 
-    for _ in range(5):
+    for _ in range(20):
         try:
             return mysql.connector.connect(
                 host=current_app.config["MYSQL_HOST"],
@@ -19,7 +19,7 @@ def get_db_connection():
             )
         except mysql.connector.Error as error:
             last_error = error
-            time.sleep(1)
+            time.sleep(2)
 
     raise last_error
 

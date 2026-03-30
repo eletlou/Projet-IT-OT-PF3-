@@ -30,8 +30,7 @@ services:
     container_name: les_viviers_web_client
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
