@@ -26,6 +26,6 @@ fi
 
 echo
 echo "${STATUS_MESSAGE}"
-echo "Flask   : http://localhost:5000"
+echo "Flask   : http://localhost:5005"
 echo "OPCUA   : http://localhost:5051"
 echo "Adminer : http://localhost:8081"

@@ -67,7 +67,7 @@ docker compose down -v
 
 ## 4. Acces navigateur
 
-- application Flask : `http://localhost:5000`
+- application Flask : `http://localhost:5005`
 - Adminer : `http://localhost:8081`
 
 ## 5. Comptes de demonstration
@@ -86,8 +86,14 @@ Modele de reference :
 ```env
 MYSQL_ROOT_PASSWORD=uimm
 MYSQL_DATABASE=les_viviers_de_noirmoutier
-APP_PORT=5000
+APP_PORT=5005
 SESSION_SECRET=change_me_session_secret
+```
+
+Valeur conseillee pour eviter les conflits entre equipes en local :
+
+```env
+APP_PORT=5005
 ```
 
 ## 7. Arborescence utile
@@ -146,3 +152,36 @@ Au quotidien, il n'est pas necessaire de supprimer et recreer les conteneurs Doc
 - `./reset.sh` est reserve a une remise a zero complete
 
 En pratique, ce sont surtout les reconstructions et les reinitialisations completes qui consomment le plus de temps et d'operations, pas un simple `start` ou `stop`.
+
+## 12. Deploiement client via Portainer
+
+Pour le deploiement client, s'appuyer sur les exigences reseau et hebergement de [Projet IT-OT - Doc Technique SACom.pdf](/home/user/Bureau/Projet%20IT-OT%20-%20Doc%20Technique%20SACom.pdf) et sur les attentes fonctionnelles de [LesViviers202601-1-Offre.pdf](/home/user/Bureau/LesViviers202601-1-Offre.pdf).
+
+Synthese utile :
+
+- equipe C : VM Debian 12 en `10.0.1.30`
+- acces deploiement : Portainer en `https` sur le port `9443`
+- pas d'acces SSH pour le deploiement
+- reseau industriel : `172.30.30.X/24`
+- flux autorise entre reseau entreprise et industriel : `TCP 4840` pour OPC UA
+- le logiciel final doit etre un serveur web en conteneur Docker avec base SQL associee
+
+Etapes conseillees :
+
+1. pousser le code a jour sur GitHub
+2. depuis Portainer, creer une stack a partir du fichier `docker-compose.portainer.yml`
+3. definir au minimum les variables d'environnement suivantes :
+   - `MYSQL_ROOT_PASSWORD`
+   - `MYSQL_DATABASE`
+   - `SESSION_SECRET`
+   - `APP_PORT=5005`
+4. deployer uniquement `web` et `db` pour le client
+5. ne pas exposer `adminer` ni `opcua_test` en production, car ils servent au dev et au test temporaire
+6. verifier l'acces web sur `http://10.0.1.30:5005`
+7. verifier le dialogue OPC UA vers le WAGO `172.30.30.20` sur le port `4840`
+8. verifier la persistance MySQL apres redemarrage des conteneurs
+
+Point de vigilance :
+
+- le test OPC UA actuel valide une connexion anonyme de recette, mais le cahier client final demande une liaison OPC UA securisee avec certificats et une gestion de reconnexion
+- avant livraison client, il faut donc distinguer clairement le conteneur de test temporaire du comportement final attendu sur la supervision metier
