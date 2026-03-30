@@ -17,4 +17,3 @@ fi
 echo
 echo "Application reinitialisee avec une base propre."
 echo "Flask   : http://localhost:5005"
-echo "Adminer : http://localhost:8081"

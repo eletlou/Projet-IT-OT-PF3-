@@ -15,17 +15,15 @@ Fonctions principales :
 - maintenance curative et preventive
 - supervision technique : alertes, variables automate, seuils, OPCUA
 - gestion des utilisateurs
-- consultation de la base via Adminer
 
 ## 2. Architecture simple
 
-Le projet repose sur 3 briques :
+Le projet repose sur 2 briques principales :
 
 - `web` : application Flask qui affiche les pages et execute la logique metier
 - `db` : base de donnees MySQL qui stocke les utilisateurs, commandes, alertes et donnees de supervision
-- `adminer` : interface web de consultation de la base de donnees
 
-Le fichier `docker-compose.yml` orchestre ces 3 services.
+Le fichier `docker-compose.yml` orchestre ces 2 services.
 
 ## 3. Demarrage du projet
 
@@ -68,7 +66,6 @@ docker compose down -v
 ## 4. Acces navigateur
 
 - application Flask : `http://localhost:5005`
-- Adminer : `http://localhost:8081`
 
 ## 5. Comptes de demonstration
 
@@ -98,7 +95,7 @@ APP_PORT=5005
 
 ## 7. Arborescence utile
 
-- `docker-compose.yml` : declaration des services `web`, `db` et `adminer`
+- `docker-compose.yml` : declaration de la stack client `web` + `db`
 - `db/01-schema.sql` : creation de la structure de la base
 - `db/02-seed.sql` : insertion des donnees de demonstration
 - `app/run.py` : point d'entree Flask
@@ -169,17 +166,16 @@ Synthese utile :
 Etapes conseillees :
 
 1. pousser le code a jour sur GitHub
-2. depuis Portainer, creer une stack a partir du fichier `docker-compose.portainer.yml`
+2. depuis Portainer, creer une stack a partir du fichier `docker-compose.yml`
 3. definir au minimum les variables d'environnement suivantes :
    - `MYSQL_ROOT_PASSWORD`
    - `MYSQL_DATABASE`
    - `SESSION_SECRET`
    - `APP_PORT=5005`
-4. deployer uniquement `web` et `db` pour le client
-5. ne pas exposer `adminer` ni `opcua_test` en production, car ils servent au dev et au test temporaire
-6. verifier l'acces web sur `http://10.0.1.30:5005`
-7. verifier le dialogue OPC UA vers le WAGO `172.30.30.20` sur le port `4840`
-8. verifier la persistance MySQL apres redemarrage des conteneurs
+4. deployer uniquement `web` et `db`, qui sont les seuls services presents dans la stack finale
+5. verifier l'acces web sur `http://10.0.1.30:5005`
+6. verifier le dialogue OPC UA vers le WAGO `172.30.30.20` sur le port `4840`
+7. verifier la persistance MySQL apres redemarrage des conteneurs
 
 Point de vigilance :
 

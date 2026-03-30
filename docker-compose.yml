@@ -1,38 +1,28 @@
-name: les_viviers_de_noirmoutier
+name: les_viviers_de_noirmoutier_client
 
 services:
   db:
-    image: mysql:8.0
-    container_name: les_viviers_mysql
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    container_name: les_viviers_mysql_client
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-uimm}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-les_viviers_de_noirmoutier}
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./db:/docker-entrypoint-initdb.d:ro
+      - mysql_data_client:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  adminer:
-    image: adminer:4.8.1
-    container_name: les_viviers_adminer
-    restart: unless-stopped
-    environment:
-      ADMINER_DEFAULT_SERVER: db
-    depends_on:
-      - db
-    ports:
-      - "8081:8080"
-
   web:
     build:
       context: .
       dockerfile: app/Dockerfile
-    container_name: les_viviers_web
+    container_name: les_viviers_web_client
     restart: unless-stopped
     depends_on:
       db:
@@ -41,29 +31,12 @@ services:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
       MYSQL_USER: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-uimm}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-les_viviers_de_noirmoutier}
-      SESSION_SECRET: ${SESSION_SECRET:-les_viviers_supervision_2026}
+      SESSION_SECRET: ${SESSION_SECRET}
+      FLASK_DEBUG: 0
     ports:
       - "${APP_PORT:-5005}:5000"
-    volumes:
-      - ./app:/app
-
-  opcua_test:
-    build:
-      context: .
-      dockerfile: app/Dockerfile
-    container_name: les_viviers_opcua_test
-    restart: unless-stopped
-    environment:
-      SESSION_SECRET: ${SESSION_SECRET:-les_viviers_supervision_2026}
-      OPCUA_TEST_ENDPOINT: ${OPCUA_TEST_ENDPOINT:-opc.tcp://172.30.30.20:4840}
-      OPCUA_TEST_PORT: ${OPCUA_TEST_PORT:-5051}
-    command: ["python", "run_opcua_test.py"]
-    ports:
-      - "${OPCUA_TEST_PORT:-5051}:5051"
-    volumes:
-      - ./app:/app
 
 volumes:
-  mysql_data:
+  mysql_data_client:
