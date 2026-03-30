@@ -255,7 +255,10 @@ def opcua_client(settings, timeout):
     if settings.get("password"):
         client.set_password(settings["password"])
 
-    client.connect()
+    try:
+        client.connect()
+    except Exception as exc:
+        raise RuntimeError(_format_connection_error(exc, settings)) from exc
     try:
         yield client, ua
     finally:
@@ -263,6 +266,36 @@ def opcua_client(settings, timeout):
             client.disconnect()
         except Exception:
             pass
+
+
+def _format_connection_error(exc, settings):
+    message = str(exc).strip() or exc.__class__.__name__
+    message_lower = message.lower()
+
+    if "badsessionnotactivated" in message_lower or "activatesession has not been called" in message_lower:
+        hints = [
+            "Le serveur OPC UA a refuse l'activation de la session.",
+        ]
+        if not settings.get("username"):
+            hints.append(
+                "L'acces anonyme est probablement desactive sur le WAGO : essaye avec un utilisateur OPC UA configure sur l'automate."
+            )
+        hints.append(
+            "Si le CC100 n'accepte pas l'endpoint non securise, il faut autoriser `Security Policy None` cote automate ou passer a une liaison OPC UA securisee avec certificats."
+        )
+        return f"{message} {' '.join(hints)}"
+
+    if "connection refused" in message_lower or "[errno 111]" in message_lower:
+        return (
+            f"{message} Le port OPC UA a refuse la connexion. Verifie que le serveur OPC UA du WAGO est demarre et ecoute bien sur l'adresse cible."
+        )
+
+    if "timed out" in message_lower or "timeout" in message_lower:
+        return (
+            f"{message} Le port OPC UA ne repond pas a temps. Verifie le flux TCP 4840 entre le conteneur Docker, la VM et le reseau industriel."
+        )
+
+    return message
 
 
 def _cleanup_connection_settings():

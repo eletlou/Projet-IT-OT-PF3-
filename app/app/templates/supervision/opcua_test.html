@@ -12,7 +12,7 @@
         <h3>Connexion directe au WAGO CC100</h3>
         <p class="hero-copy">
             Cette page est isolee du reste du projet et utilise votre liste de Node IDs pour tester la lecture et l'ecriture
-            sans toucher aux ecrans metier existants. Le test est preconfigure pour le WAGO `172.30.30.20`
+            sans toucher aux ecrans metier existants. Le test est preconfigure pour le WAGO `{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}`
             avec une connexion OPC UA anonyme.
         </p>
     </div>
@@ -86,7 +86,7 @@
             </div>
         </form>
 
-        <p class="opcua-note">Endpoint configure : <code>opc.tcp://172.30.30.20:4840</code> - connexion OPC UA anonyme.</p>
+        <p class="opcua-note">Endpoint configure : <code>{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}</code> - connexion OPC UA anonyme.</p>
     </article>
 
     <article class="panel-card">

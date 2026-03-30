@@ -19,7 +19,7 @@
         </div>
         <div>
             <span>Connexion</span>
-            <strong>Anonyme</strong>
+            <strong>{{ 'Identifiants OPC UA' if page_data.connection.has_password else 'Anonyme par defaut' }}</strong>
         </div>
         <div>
             <span>Node IDs</span>
@@ -37,8 +37,8 @@
     </div>
     <p class="empty-copy">
         URL de test : <strong>{{ request.host_url.rstrip('/') }}</strong><br>
-        Serveur WAGO : <code>opc.tcp://172.30.30.20:4840</code><br>
-        Authentification OPC UA : connexion anonyme
+        Serveur WAGO : <code>{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}</code><br>
+        Authentification OPC UA : anonyme par defaut, identifiants possibles si le WAGO refuse l'anonyme
     </p>
 </section>
 
@@ -64,9 +64,28 @@
                 >
             </div>
 
-            <div class="opcua-form-row opcua-hidden-auth-row" aria-hidden="true">
-                <input type="hidden" name="username" value="{{ page_data.form_state.username }}">
-                <input type="hidden" name="password" value="">
+            <div class="opcua-form-row">
+                <div class="field-group">
+                    <label for="opcua_username">Utilisateur</label>
+                    <input
+                        id="opcua_username"
+                        name="username"
+                        type="text"
+                        value="{{ page_data.form_state.username }}"
+                        placeholder="Optionnel"
+                    >
+                </div>
+
+                <div class="field-group">
+                    <label for="opcua_password">Mot de passe</label>
+                    <input
+                        id="opcua_password"
+                        name="password"
+                        type="password"
+                        value=""
+                        placeholder="Optionnel"
+                    >
+                </div>
             </div>
 
             <div class="opcua-action-row">
@@ -77,7 +96,7 @@
             </div>
         </form>
 
-        <p class="opcua-note">La page travaille en connexion anonyme et n'utilise pas le login de l'application metier.</p>
+        <p class="opcua-note">La page teste d'abord l'anonyme, mais tu peux saisir un compte OPC UA du WAGO si l'automate refuse l'activation de session.</p>
     </article>
 
     <article class="panel-card">
@@ -103,8 +122,8 @@
 
             <div class="detail-card">
                 <span>Authentification</span>
-                <strong>Connexion anonyme</strong>
-                <p>Aucun identifiant OPC UA requis</p>
+                <strong>{{ 'Identifiants fournis' if page_data.connection.has_password else 'Connexion anonyme' }}</strong>
+                <p>Utilisateur : {{ page_data.connection.username or 'aucun' }}</p>
             </div>
 
             <div class="detail-card">
