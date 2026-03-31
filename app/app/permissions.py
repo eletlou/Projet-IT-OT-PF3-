@@ -9,6 +9,7 @@ ROLE_PERMISSIONS = {
         "commandes",
         "maintenance",
         "maintenance_write",
+        "opcua_test",
         "supervision",
         "thresholds_write",
         "users",
@@ -30,6 +31,7 @@ ROLE_PERMISSIONS = {
         "commandes",
         "maintenance",
         "maintenance_write",
+        "opcua_test",
         "supervision",
         "thresholds_write",
     },
@@ -59,6 +61,13 @@ NAV_ITEMS = [
         "label": "Supervision",
         "prefix": "/supervision",
         "permission": "supervision",
+        "active_exclude_prefixes": ["/supervision/opcua-test"],
+    },
+    {
+        "endpoint": "supervision.opcua_test",
+        "label": "OPCUA",
+        "prefix": "/supervision/opcua-test",
+        "permission": "opcua_test",
     },
     {
         "endpoint": "users.index",
@@ -77,6 +86,14 @@ def has_permission(role_code, permission):
 
 def get_navigation(role_code):
     return [item for item in NAV_ITEMS if has_permission(role_code, item["permission"])]
+
+
+def is_navigation_item_active(item, path):
+    for excluded_prefix in item.get("active_exclude_prefixes", []):
+        if path.startswith(excluded_prefix):
+            return False
+
+    return path.startswith(item["prefix"])
 
 
 def login_required(view_function):

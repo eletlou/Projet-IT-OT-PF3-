@@ -46,7 +46,7 @@ def update_threshold_route(threshold_id):
 
 @supervision_bp.route("/opcua-test")
 @login_required
-@permission_required("supervision")
+@permission_required("opcua_test")
 def opcua_test():
     return render_template(
         "supervision/opcua_test.html",
@@ -56,7 +56,7 @@ def opcua_test():
 
 @supervision_bp.route("/opcua-test/connect", methods=["POST"])
 @login_required
-@permission_required("supervision")
+@permission_required("opcua_test")
 def connect_opcua_test_route():
     endpoint = request.form.get("endpoint", "").strip()
     username = request.form.get("username", "").strip()
@@ -90,7 +90,7 @@ def connect_opcua_test_route():
 
 @supervision_bp.route("/opcua-test/refresh", methods=["POST"])
 @login_required
-@permission_required("supervision")
+@permission_required("opcua_test")
 def refresh_opcua_test_route():
     session_key = _get_opcua_test_session_key()
 
@@ -114,7 +114,7 @@ def refresh_opcua_test_route():
 
 @supervision_bp.route("/opcua-test/write", methods=["POST"])
 @login_required
-@permission_required("supervision")
+@permission_required("opcua_test")
 def write_opcua_test_value_route():
     session_key = _get_opcua_test_session_key()
     node_id = request.form.get("node_id", "").strip()
@@ -149,7 +149,7 @@ def write_opcua_test_value_route():
 
 @supervision_bp.route("/opcua-test/disconnect", methods=["POST"])
 @login_required
-@permission_required("supervision")
+@permission_required("opcua_test")
 def disconnect_opcua_test_route():
     clear_connection_settings(_get_opcua_test_session_key())
     flash("Connexion OPC UA temporaire effacee pour cette session.", "success")

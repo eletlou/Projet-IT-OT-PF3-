@@ -28,7 +28,7 @@
                 {% for item in navigation_items %}
                     <a
                         href="{{ url_for(item.endpoint) }}"
-                        class="nav-link {% if request.path.startswith(item.prefix) %}nav-link-active{% endif %}"
+                        class="nav-link {% if is_nav_active(item) %}nav-link-active{% endif %}"
                     >
                         {{ item.label }}
                     </a>

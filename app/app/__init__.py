@@ -4,7 +4,7 @@ from datetime import date, datetime
 from flask import Flask, redirect, request, session, url_for
 
 from app.config import Config
-from app.permissions import get_navigation, has_permission
+from app.permissions import get_navigation, has_permission, is_navigation_item_active
 from app.routes import auth_bp, commands_bp, dashboard_bp, maintenance_bp, supervision_bp, users_bp
 
 
@@ -27,6 +27,7 @@ def create_app():
         return {
             "navigation_items": get_navigation(user_role),
             "can": lambda permission: has_permission(user_role, permission),
+            "is_nav_active": lambda item: is_navigation_item_active(item, request.path),
         }
 
     @app.before_request
