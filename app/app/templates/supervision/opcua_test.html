@@ -13,7 +13,7 @@
         <p class="hero-copy">
             Cette page est isolee du reste du projet et utilise votre liste de Node IDs pour tester la lecture et l'ecriture
             sans toucher aux ecrans metier existants. Le test est preconfigure pour le WAGO `{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}`
-            avec une connexion OPC UA anonyme.
+            et permet une connexion OPC UA avec ou sans identifiants selon la configuration de l'automate.
         </p>
     </div>
     <div class="hero-stats">
@@ -86,7 +86,7 @@
             </div>
         </form>
 
-        <p class="opcua-note">Endpoint configure : <code>{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}</code> - connexion OPC UA anonyme.</p>
+        <p class="opcua-note">Endpoint configure : <code>{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}</code>. Tu peux saisir un compte OPC UA si l'automate l'exige.</p>
     </article>
 
     <article class="panel-card">
@@ -112,7 +112,7 @@
 
             <div class="detail-card">
                 <span>Authentification</span>
-                <strong>{{ 'Identifiants fournis' if page_data.connection.has_password else 'Connexion anonyme' }}</strong>
+                <strong>{{ 'Identifiants fournis' if page_data.connection.has_credentials else 'Sans identifiants' }}</strong>
                 <p>Utilisateur : {{ page_data.connection.username or 'aucun' }}</p>
             </div>
 

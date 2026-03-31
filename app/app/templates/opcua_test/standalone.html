@@ -19,7 +19,7 @@
         </div>
         <div>
             <span>Connexion</span>
-            <strong>{{ 'Identifiants OPC UA' if page_data.connection.has_password else 'Anonyme par defaut' }}</strong>
+            <strong>{{ 'Identifiants OPC UA' if page_data.connection.has_credentials else 'Sans identifiants' }}</strong>
         </div>
         <div>
             <span>Node IDs</span>
@@ -38,7 +38,7 @@
     <p class="empty-copy">
         URL de test : <strong>{{ request.host_url.rstrip('/') }}</strong><br>
         Serveur WAGO : <code>{{ page_data.form_state.endpoint or 'opc.tcp://172.30.30.20:4840' }}</code><br>
-        Authentification OPC UA : anonyme par defaut, identifiants possibles si le WAGO refuse l'anonyme
+        Authentification OPC UA : sans identifiants ou avec un compte OPC UA selon la configuration de l'automate
     </p>
 </section>
 
@@ -96,7 +96,7 @@
             </div>
         </form>
 
-        <p class="opcua-note">La page teste d'abord l'anonyme, mais tu peux saisir un compte OPC UA du WAGO si l'automate refuse l'activation de session.</p>
+        <p class="opcua-note">Tu peux tester l'endpoint tel quel, ou saisir un compte OPC UA si l'automate l'exige.</p>
     </article>
 
     <article class="panel-card">
@@ -122,7 +122,7 @@
 
             <div class="detail-card">
                 <span>Authentification</span>
-                <strong>{{ 'Identifiants fournis' if page_data.connection.has_password else 'Connexion anonyme' }}</strong>
+                <strong>{{ 'Identifiants fournis' if page_data.connection.has_credentials else 'Sans identifiants' }}</strong>
                 <p>Utilisateur : {{ page_data.connection.username or 'aucun' }}</p>
             </div>
 

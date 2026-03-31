@@ -5,7 +5,9 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from app.permissions import has_permission, login_required, permission_required
 from app.services.opcua_test_service import (
     clear_connection_settings,
+    get_error_detail,
     get_opcua_test_page_model,
+    get_user_facing_error,
     read_opcua_test_variables,
     save_connection_settings,
     write_opcua_test_value,
@@ -70,16 +72,18 @@ def connect_opcua_test_route():
             read_state=read_state,
             form_overrides={"endpoint": endpoint, "username": username},
         )
-        flash("Connexion OPC UA validee. Les variables ont ete lues avec succes.", "success")
+        flash("Connexion OK", "success")
     except Exception as exc:
-        current_app.logger.warning("Echec du test OPC UA initial: %s", exc)
+        error_detail = get_error_detail(exc)
+        current_app.logger.warning("Echec du test OPC UA initial: %s", error_detail)
         page_data = get_opcua_test_page_model(
             current_app.config,
             session_key,
             form_overrides={"endpoint": endpoint, "username": username},
-            read_error=str(exc),
+            read_error=get_user_facing_error(exc, "Erreur de connexion"),
+            read_error_detail=error_detail,
         )
-        flash(f"Connexion OPC UA impossible : {exc}", "error")
+        flash("Erreur de connexion", "error")
 
     return render_template("supervision/opcua_test.html", page_data=page_data)
 
@@ -93,11 +97,17 @@ def refresh_opcua_test_route():
     try:
         read_state = read_opcua_test_variables(current_app.config, session_key)
         page_data = get_opcua_test_page_model(current_app.config, session_key, read_state=read_state)
-        flash("Lecture OPC UA actualisee.", "success")
+        flash("Connexion OK", "success")
     except Exception as exc:
-        current_app.logger.warning("Echec du rafraichissement OPC UA: %s", exc)
-        page_data = get_opcua_test_page_model(current_app.config, session_key, read_error=str(exc))
-        flash(f"Lecture OPC UA impossible : {exc}", "error")
+        error_detail = get_error_detail(exc)
+        current_app.logger.warning("Echec du rafraichissement OPC UA: %s", error_detail)
+        page_data = get_opcua_test_page_model(
+            current_app.config,
+            session_key,
+            read_error=get_user_facing_error(exc, "Erreur de connexion"),
+            read_error_detail=error_detail,
+        )
+        flash("Erreur de connexion", "error")
 
     return render_template("supervision/opcua_test.html", page_data=page_data)
 
@@ -117,15 +127,22 @@ def write_opcua_test_value_route():
             "success",
         )
     except Exception as exc:
-        current_app.logger.warning("Echec ecriture OPC UA sur %s: %s", node_id or "node_inconnu", exc)
-        flash(f"Ecriture OPC UA impossible : {exc}", "error")
+        error_detail = get_error_detail(exc)
+        current_app.logger.warning("Echec ecriture OPC UA sur %s: %s", node_id or "node_inconnu", error_detail)
+        flash("Erreur d'ecriture", "error")
 
     try:
         read_state = read_opcua_test_variables(current_app.config, session_key)
         page_data = get_opcua_test_page_model(current_app.config, session_key, read_state=read_state)
     except Exception as exc:
-        current_app.logger.warning("Impossible de relire les variables apres ecriture OPC UA: %s", exc)
-        page_data = get_opcua_test_page_model(current_app.config, session_key, read_error=str(exc))
+        error_detail = get_error_detail(exc)
+        current_app.logger.warning("Impossible de relire les variables apres ecriture OPC UA: %s", error_detail)
+        page_data = get_opcua_test_page_model(
+            current_app.config,
+            session_key,
+            read_error=get_user_facing_error(exc, "Erreur de connexion"),
+            read_error_detail=error_detail,
+        )
 
     return render_template("supervision/opcua_test.html", page_data=page_data)
 

@@ -7,7 +7,9 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 from app.config import Config
 from app.services.opcua_test_service import (
     clear_connection_settings,
+    get_error_detail,
     get_opcua_test_page_model,
+    get_user_facing_error,
     read_opcua_test_variables,
     save_connection_settings,
     write_opcua_test_value,
@@ -52,16 +54,18 @@ def create_opcua_test_app():
                 read_state=read_state,
                 form_overrides={"endpoint": endpoint, "username": username},
             )
-            flash("Connexion OPC UA validee. Les variables ont ete lues avec succes.", "success")
+            flash("Connexion OK", "success")
         except Exception as exc:
-            app.logger.warning("Echec du test OPC UA initial: %s", exc)
+            error_detail = get_error_detail(exc)
+            app.logger.warning("Echec du test OPC UA initial: %s", error_detail)
             page_data = get_opcua_test_page_model(
                 app.config,
                 session_key,
                 form_overrides={"endpoint": endpoint, "username": username},
-                read_error=str(exc),
+                read_error=get_user_facing_error(exc, "Erreur de connexion"),
+                read_error_detail=error_detail,
             )
-            flash(f"Connexion OPC UA impossible : {exc}", "error")
+            flash("Erreur de connexion", "error")
 
         return render_template("opcua_test/standalone.html", page_data=page_data)
 
@@ -72,11 +76,17 @@ def create_opcua_test_app():
         try:
             read_state = read_opcua_test_variables(app.config, session_key)
             page_data = get_opcua_test_page_model(app.config, session_key, read_state=read_state)
-            flash("Lecture OPC UA actualisee.", "success")
+            flash("Connexion OK", "success")
         except Exception as exc:
-            app.logger.warning("Echec du rafraichissement OPC UA: %s", exc)
-            page_data = get_opcua_test_page_model(app.config, session_key, read_error=str(exc))
-            flash(f"Lecture OPC UA impossible : {exc}", "error")
+            error_detail = get_error_detail(exc)
+            app.logger.warning("Echec du rafraichissement OPC UA: %s", error_detail)
+            page_data = get_opcua_test_page_model(
+                app.config,
+                session_key,
+                read_error=get_user_facing_error(exc, "Erreur de connexion"),
+                read_error_detail=error_detail,
+            )
+            flash("Erreur de connexion", "error")
 
         return render_template("opcua_test/standalone.html", page_data=page_data)
 
@@ -93,15 +103,22 @@ def create_opcua_test_app():
                 "success",
             )
         except Exception as exc:
-            app.logger.warning("Echec ecriture OPC UA sur %s: %s", node_id or "node_inconnu", exc)
-            flash(f"Ecriture OPC UA impossible : {exc}", "error")
+            error_detail = get_error_detail(exc)
+            app.logger.warning("Echec ecriture OPC UA sur %s: %s", node_id or "node_inconnu", error_detail)
+            flash("Erreur d'ecriture", "error")
 
         try:
             read_state = read_opcua_test_variables(app.config, session_key)
             page_data = get_opcua_test_page_model(app.config, session_key, read_state=read_state)
         except Exception as exc:
-            app.logger.warning("Impossible de relire les variables apres ecriture OPC UA: %s", exc)
-            page_data = get_opcua_test_page_model(app.config, session_key, read_error=str(exc))
+            error_detail = get_error_detail(exc)
+            app.logger.warning("Impossible de relire les variables apres ecriture OPC UA: %s", error_detail)
+            page_data = get_opcua_test_page_model(
+                app.config,
+                session_key,
+                read_error=get_user_facing_error(exc, "Erreur de connexion"),
+                read_error_detail=error_detail,
+            )
 
         return render_template("opcua_test/standalone.html", page_data=page_data)
 

@@ -11,7 +11,22 @@ _TRUE_VALUES = {"1", "true", "vrai", "on", "oui", "yes"}
 _FALSE_VALUES = {"0", "false", "faux", "off", "non", "no"}
 
 
-def get_opcua_test_page_model(config, session_key, read_state=None, form_overrides=None, read_error=None):
+class OpcuaTestError(RuntimeError):
+    def __init__(self, user_message, technical_message=None):
+        technical_message = technical_message or user_message
+        super().__init__(technical_message)
+        self.user_message = user_message
+        self.technical_message = technical_message
+
+
+def get_opcua_test_page_model(
+    config,
+    session_key,
+    read_state=None,
+    form_overrides=None,
+    read_error=None,
+    read_error_detail=None,
+):
     connection_state = get_connection_state(config, session_key)
     form_overrides = form_overrides or {}
 
@@ -54,6 +69,7 @@ def get_opcua_test_page_model(config, session_key, read_state=None, form_overrid
             "last_read_at": last_read_at,
         },
         "read_error": read_error,
+        "read_error_detail": read_error_detail,
     }
 
 
@@ -78,6 +94,7 @@ def get_connection_state(config, session_key):
         "endpoint": endpoint,
         "username": username,
         "has_active_settings": bool(endpoint),
+        "has_credentials": bool(username),
         "has_password": bool(password),
         "source_label": source_label,
     }
@@ -93,7 +110,9 @@ def save_connection_settings(config, session_key, endpoint, username, password):
     _cleanup_connection_settings()
     previous_settings = _CONNECTION_SETTINGS.get(session_key, {})
 
-    if password:
+    if not username:
+        password_to_store = ""
+    elif password:
         password_to_store = password
     elif previous_settings.get("endpoint") == endpoint and previous_settings.get("username") == username:
         password_to_store = previous_settings.get("password", "")
@@ -173,7 +192,7 @@ def resolve_connection_settings(config, session_key):
     return {
         "endpoint": connection_state["endpoint"],
         "username": connection_state["username"],
-        "password": password,
+        "password": password if connection_state["username"] else "",
     }
 
 
@@ -255,10 +274,13 @@ def opcua_client(settings, timeout):
     if settings.get("password"):
         client.set_password(settings["password"])
 
+    discovered_endpoint = _discover_matching_endpoint(settings["endpoint"], timeout)
+
     try:
-        client.connect()
+        _validate_discovered_endpoint(settings, discovered_endpoint)
+        _connect_client(client, settings, discovered_endpoint)
     except Exception as exc:
-        raise RuntimeError(_format_connection_error(exc, settings)) from exc
+        raise OpcuaTestError("Erreur de connexion", _format_connection_error(exc, settings, discovered_endpoint)) from exc
     try:
         yield client, ua
     finally:
@@ -268,9 +290,105 @@ def opcua_client(settings, timeout):
             pass
 
 
-def _format_connection_error(exc, settings):
+def get_user_facing_error(exc, default_message):
+    if isinstance(exc, OpcuaTestError):
+        return exc.user_message
+    return default_message
+
+
+def get_error_detail(exc):
+    if isinstance(exc, OpcuaTestError):
+        return exc.technical_message
+    return str(exc).strip() or exc.__class__.__name__
+
+
+def _discover_matching_endpoint(endpoint, timeout):
+    try:
+        from opcua import Client
+    except ImportError:
+        return None
+
+    probe_client = Client(endpoint, timeout=timeout)
+
+    try:
+        endpoints = probe_client.connect_and_get_server_endpoints()
+        return probe_client.find_endpoint(
+            endpoints,
+            probe_client.security_policy.Mode,
+            probe_client.security_policy.URI,
+        )
+    except Exception:
+        return None
+
+
+def _validate_discovered_endpoint(settings, endpoint_description):
+    if endpoint_description is None:
+        return
+
+    token_types = _get_user_token_types(endpoint_description)
+
+    if not settings.get("username") and "Anonymous" not in token_types:
+        raise RuntimeError("Le serveur OPC UA n'autorise pas l'acces anonyme pour cet endpoint.")
+
+    if settings.get("username") and "UserName" not in token_types:
+        raise RuntimeError("Le serveur OPC UA n'autorise pas l'authentification par utilisateur pour cet endpoint.")
+
+    if settings.get("username") and _username_token_requires_encryption(endpoint_description) and not _has_cryptography_support():
+        raise RuntimeError(
+            "Le mot de passe OPC UA doit etre chiffre pour cet endpoint, mais la dependance Python 'cryptography' n'est pas disponible."
+        )
+
+
+def _connect_client(client, settings, discovered_endpoint):
+    client.connect_socket()
+    try:
+        client.send_hello()
+        client.open_secure_channel()
+        try:
+            client.create_session()
+
+            if discovered_endpoint is not None and getattr(discovered_endpoint, "UserIdentityTokens", None):
+                client._policy_ids = discovered_endpoint.UserIdentityTokens
+
+            try:
+                client.activate_session(
+                    username=settings.get("username") or None,
+                    password=settings.get("password") or None,
+                    certificate=client.user_certificate,
+                )
+            except Exception:
+                client.close_session()
+                raise
+        except Exception:
+            client.close_secure_channel()
+            raise
+    except Exception:
+        client.disconnect_socket()
+        raise
+
+
+def _format_connection_error(exc, settings, endpoint_description=None):
     message = str(exc).strip() or exc.__class__.__name__
     message_lower = message.lower()
+    token_types = _get_user_token_types(endpoint_description)
+
+    if not settings.get("username") and token_types and "Anonymous" not in token_types:
+        return (
+            f"{message} L'endpoint detecte n'accepte pas l'acces anonyme. "
+            "Configure un utilisateur OPC UA sur le WAGO ou active l'acces anonyme cote automate."
+        )
+
+    if settings.get("username") and token_types and "UserName" not in token_types:
+        return (
+            f"{message} L'endpoint detecte n'accepte pas l'authentification Username/Password. "
+            "Verifie la configuration OPC UA du WAGO et le type d'identite autorise."
+        )
+
+    if settings.get("username") and _username_token_requires_encryption(endpoint_description) and not _has_cryptography_support():
+        return (
+            f"{message} Le serveur demande un chiffrement du mot de passe OPC UA pour cet endpoint. "
+            "Reconstruis l'image web avec la dependance Python 'cryptography'."
+        )
 
     if "badsessionnotactivated" in message_lower or "activatesession has not been called" in message_lower:
         hints = [
@@ -296,6 +414,43 @@ def _format_connection_error(exc, settings):
         )
 
     return message
+
+
+def _get_user_token_types(endpoint_description):
+    if endpoint_description is None:
+        return set()
+
+    token_types = set()
+    for token in getattr(endpoint_description, "UserIdentityTokens", []):
+        token_type = getattr(getattr(token, "TokenType", None), "name", None)
+        if token_type:
+            token_types.add(token_type)
+    return token_types
+
+
+def _username_token_requires_encryption(endpoint_description):
+    if endpoint_description is None:
+        return False
+
+    security_policy_uri = getattr(endpoint_description, "SecurityPolicyUri", "") or ""
+
+    for token in getattr(endpoint_description, "UserIdentityTokens", []):
+        token_type = getattr(getattr(token, "TokenType", None), "name", None)
+        if token_type != "UserName":
+            continue
+
+        token_policy_uri = getattr(token, "SecurityPolicyUri", "") or security_policy_uri
+        return bool(token_policy_uri and not token_policy_uri.lower().endswith("#none"))
+
+    return False
+
+
+def _has_cryptography_support():
+    try:
+        import cryptography  # noqa: F401
+    except ImportError:
+        return False
+    return True
 
 
 def _cleanup_connection_settings():
