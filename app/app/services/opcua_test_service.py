@@ -196,6 +196,50 @@ def resolve_connection_settings(config, session_key):
     }
 
 
+def resolve_default_connection_settings(config):
+    endpoint = (config.get("OPCUA_TEST_ENDPOINT", "") or "").strip()
+    username = (config.get("OPCUA_TEST_USERNAME", "") or "").strip()
+    password = config.get("OPCUA_TEST_PASSWORD", "") or ""
+
+    if not endpoint:
+        raise ValueError("Aucun endpoint OPC UA par defaut n'est configure pour l'application.")
+
+    return {
+        "endpoint": endpoint,
+        "username": username,
+        "password": password if username else "",
+    }
+
+
+def read_configured_opcua_variable(config, node_id, display_name=None):
+    clean_node_id = (node_id or "").strip()
+    resolved_display_name = display_name or _derive_display_name(clean_node_id)
+
+    if not clean_node_id:
+        return _build_variable_error_result(
+            resolved_display_name,
+            clean_node_id,
+            "Node ID OPC UA non configure.",
+        )
+
+    try:
+        settings = resolve_default_connection_settings(config)
+        timeout = float(config.get("OPCUA_TEST_TIMEOUT", 3.0))
+        node_definition = {
+            "display_name": resolved_display_name,
+            "node_id": clean_node_id,
+        }
+
+        with opcua_client(settings, timeout) as (client, _ua):
+            return _read_variable(client, node_definition)
+    except Exception as exc:
+        return _build_variable_error_result(
+            resolved_display_name,
+            clean_node_id,
+            get_error_detail(exc),
+        )
+
+
 def load_opcua_test_nodes(node_file_path):
     if not node_file_path:
         raise FileNotFoundError("Le chemin vers la liste des Node IDs OPC UA est vide.")
@@ -255,6 +299,35 @@ def parse_node_definition(raw_line):
         "display_name": identifier_value.split(".")[-1],
         "node_id": node_id,
         "raw_line": clean_line,
+    }
+
+
+def _derive_display_name(node_id):
+    if not node_id:
+        return "Variable OPC UA"
+
+    node_tail = node_id.split(".")[-1]
+    if node_tail and node_tail != node_id:
+        return node_tail
+
+    return node_id
+
+
+def _build_variable_error_result(display_name, node_id, error_message):
+    return {
+        "display_name": display_name,
+        "node_id": node_id,
+        "value_display": "Indisponible",
+        "write_value": "",
+        "data_type": "Inconnu",
+        "status_label": "Erreur",
+        "status_slug": "error",
+        "read_ok": False,
+        "write_supported": False,
+        "editor_type": "unsupported",
+        "source_timestamp": None,
+        "server_timestamp": None,
+        "error_message": error_message,
     }
 
 

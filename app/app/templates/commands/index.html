@@ -27,6 +27,17 @@
         <strong>{{ page_data.summary.energie_moyenne }} kWh</strong>
         <p>Par commande</p>
     </article>
+    <article class="metric-card">
+        <span>Compteur OPC UA</span>
+        <strong>{{ page_data.opcua_box_counter.value_display }}</strong>
+        <p>{{ page_data.opcua_box_counter.display_name }} • {{ page_data.opcua_box_counter.data_type }}</p>
+        <div class="list-row">
+            <span class="status-pill status-{{ page_data.opcua_box_counter.status_slug }}">
+                {{ page_data.opcua_box_counter.status_label }}
+            </span>
+            <small>{{ page_data.opcua_box_counter.source_timestamp|datetimefr }}</small>
+        </div>
+    </article>
 </section>
 
 <section class="content-grid content-grid-two">
