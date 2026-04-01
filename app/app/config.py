@@ -23,8 +23,8 @@ class Config:
         os.path.join(BASE_DIR, "data", "opcua_test_nodes.txt"),
     )
     OPCUA_TEST_ENDPOINT = os.getenv("OPCUA_TEST_ENDPOINT", "opc.tcp://172.30.30.20:4840")
-    OPCUA_TEST_USERNAME = os.getenv("OPCUA_TEST_USERNAME", "")
-    OPCUA_TEST_PASSWORD = os.getenv("OPCUA_TEST_PASSWORD", "")
+    OPCUA_TEST_USERNAME = os.getenv("OPCUA_TEST_USERNAME", "admin")
+    OPCUA_TEST_PASSWORD = os.getenv("OPCUA_TEST_PASSWORD", "wago")
     OPCUA_TEST_TIMEOUT = float(os.getenv("OPCUA_TEST_TIMEOUT", "3"))
     OPCUA_TEST_PORT = int(os.getenv("OPCUA_TEST_PORT", "5051"))
     OPCUA_COMMAND_COUNTER_NODE_ID = os.getenv(

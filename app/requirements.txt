@@ -1,4 +1,5 @@
 Flask==3.0.3
 mysql-connector-python==8.0.33
 opcua==0.98.13
+cryptography==44.0.2
 cryptography>=44,<47
