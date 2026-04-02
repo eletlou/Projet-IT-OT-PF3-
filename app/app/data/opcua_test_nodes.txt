@@ -1,9 +1,14 @@
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_AU_On
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_Arreter
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_Def_AU_Baie
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_Def_AU_Teach
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_Def_temps_cycle
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_En_Prod
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_Init
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_NB_Caisse
-NS4|String||var|WAGO 751-9401 Compact Controller 100.Application.GVL_IHM.IHM_NB_Huitre
+# Echantillon de NodeIds confirmes le 2 avril 2026 sur le CC100 172.30.30.20.
+# Ce fichier sert de liste de test OPC UA et ne represente pas l'integralite des 317 noeuds exposes.
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.xHeartbeat
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.eMode
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.eStep
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.xDefautActif
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.sDefautMessage
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.uiBoxCount
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.uiBoxesCompleted
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.uiCurrentBoxNumber
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.rCurrentBoxCycle_s
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.diStockCaisses
+NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.diStockHuitres
+NS4|String||var|EAG2.Application.GVL_Robot.Robot.uiGoEchoCode
