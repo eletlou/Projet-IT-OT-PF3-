@@ -20,6 +20,7 @@ def get_commands_view_model():
         current_app.config.get("OPCUA_COMMAND_COUNTER_LABEL"),
         timeout=current_app.config.get("OPCUA_COMMAND_COUNTER_TIMEOUT"),
         attempts=current_app.config.get("OPCUA_COMMAND_COUNTER_ATTEMPTS", 1),
+        precheck_timeout=current_app.config.get("OPCUA_COMMAND_COUNTER_PRECHECK_TIMEOUT"),
     )
 
     if not opcua_box_counter["read_ok"]:

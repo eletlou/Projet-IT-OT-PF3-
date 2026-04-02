@@ -12,9 +12,9 @@ from app.services.opcua_test_service import (
 POC_OPCUA_MAX_VARIABLES = 4
 POC_OPCUA_PREFERRED_VARIABLES = (
     "IHM_NB_Caisse",
-    "iCaisseDemande",
-    "iCaisseProduite",
-    "xHeartbeat",
+    "IHM_NB_Huitre",
+    "IHM_En_Prod",
+    "UO_Busy",
 )
 
 

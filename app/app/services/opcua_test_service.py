@@ -1,8 +1,10 @@
 import os
 import re
+import socket
 import time
 from contextlib import contextmanager
 from datetime import datetime
+from urllib.parse import urlsplit
 
 
 _CONNECTION_SETTINGS = {}
@@ -211,7 +213,14 @@ def resolve_default_connection_settings(config):
     }
 
 
-def read_configured_opcua_variable(config, node_id, display_name=None, timeout=None, attempts=1):
+def read_configured_opcua_variable(
+    config,
+    node_id,
+    display_name=None,
+    timeout=None,
+    attempts=1,
+    precheck_timeout=None,
+):
     clean_node_id = (node_id or "").strip()
     resolved_display_name = display_name or _derive_display_name(clean_node_id)
     resolved_timeout = float(timeout if timeout is not None else config.get("OPCUA_TEST_TIMEOUT", 3.0))
@@ -226,9 +235,27 @@ def read_configured_opcua_variable(config, node_id, display_name=None, timeout=N
 
     last_error_detail = ""
 
+    try:
+        settings = resolve_default_connection_settings(config)
+    except Exception as exc:
+        return _build_variable_error_result(
+            resolved_display_name,
+            clean_node_id,
+            get_error_detail(exc),
+        )
+
+    if precheck_timeout is not None and float(precheck_timeout) > 0:
+        try:
+            _precheck_opcua_endpoint(settings, float(precheck_timeout))
+        except Exception as exc:
+            return _build_variable_error_result(
+                resolved_display_name,
+                clean_node_id,
+                get_error_detail(exc),
+            )
+
     for attempt_index in range(resolved_attempts):
         try:
-            settings = resolve_default_connection_settings(config)
             node_definition = {
                 "display_name": resolved_display_name,
                 "node_id": clean_node_id,
@@ -338,6 +365,25 @@ def _build_variable_error_result(display_name, node_id, error_message):
         "server_timestamp": None,
         "error_message": error_message,
     }
+
+
+def _precheck_opcua_endpoint(settings, timeout):
+    endpoint = (settings.get("endpoint") or "").strip()
+    parsed_endpoint = urlsplit(endpoint)
+    host = parsed_endpoint.hostname
+    port = parsed_endpoint.port
+
+    if not host or port is None:
+        raise ValueError("L'endpoint OPC UA configure est invalide ou incomplet.")
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return
+    except OSError as exc:
+        raise OpcuaTestError(
+            "Endpoint OPC UA injoignable",
+            _format_connection_error(exc, settings),
+        ) from exc
 
 
 @contextmanager
