@@ -23,7 +23,7 @@ def get_commands_view_model():
         precheck_timeout=current_app.config.get("OPCUA_COMMAND_COUNTER_PRECHECK_TIMEOUT"),
     )
 
-    if not opcua_box_counter["read_ok"]:
+    if not opcua_box_counter["read_ok"] and not opcua_box_counter.get("cache_hit"):
         current_app.logger.warning(
             "Lecture OPC UA impossible pour %s: %s",
             opcua_box_counter["display_name"],

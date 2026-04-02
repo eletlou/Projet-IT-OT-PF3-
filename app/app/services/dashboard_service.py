@@ -39,7 +39,7 @@ def get_dashboard_view_model():
 
     if opcua_line_status["read_ok"]:
         line_status = _merge_opcua_line_status(line_status, opcua_line_status)
-    else:
+    elif not opcua_line_status.get("cache_hit"):
         current_app.logger.warning(
             "Lecture OPC UA impossible pour le statut ligne %s: %s",
             opcua_line_status["display_name"],

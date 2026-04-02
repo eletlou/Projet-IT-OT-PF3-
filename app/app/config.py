@@ -27,6 +27,12 @@ class Config:
     OPCUA_TEST_PASSWORD = os.getenv("OPCUA_TEST_PASSWORD", "wago")
     OPCUA_TEST_TIMEOUT = float(os.getenv("OPCUA_TEST_TIMEOUT", "3"))
     OPCUA_TEST_PORT = int(os.getenv("OPCUA_TEST_PORT", "5051"))
+    OPCUA_CONFIGURED_VARIABLE_CACHE_TTL = float(
+        os.getenv("OPCUA_CONFIGURED_VARIABLE_CACHE_TTL", "15")
+    )
+    OPCUA_CONFIGURED_VARIABLE_ERROR_CACHE_TTL = float(
+        os.getenv("OPCUA_CONFIGURED_VARIABLE_ERROR_CACHE_TTL", "10")
+    )
     OPCUA_COMMAND_COUNTER_NODE_ID = os.getenv(
         "OPCUA_COMMAND_COUNTER_NODE_ID",
         "ns=4;s=|var|CC100-638A7C.Application.GVL_IHM.IHM_NB_Caisse",

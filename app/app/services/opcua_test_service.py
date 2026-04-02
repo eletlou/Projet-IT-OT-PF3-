@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 _CONNECTION_SETTINGS = {}
 _CONNECTION_TTL_SECONDS = 8 * 60 * 60
+_CONFIGURED_VARIABLE_CACHE = {}
 _TRUE_VALUES = {"1", "true", "vrai", "on", "oui", "yes"}
 _FALSE_VALUES = {"0", "false", "faux", "off", "non", "no"}
 
@@ -225,6 +226,8 @@ def read_configured_opcua_variable(
     resolved_display_name = display_name or _derive_display_name(clean_node_id)
     resolved_timeout = float(timeout if timeout is not None else config.get("OPCUA_TEST_TIMEOUT", 3.0))
     resolved_attempts = max(1, int(attempts))
+    success_cache_ttl = max(0.0, float(config.get("OPCUA_CONFIGURED_VARIABLE_CACHE_TTL", 0)))
+    error_cache_ttl = max(0.0, float(config.get("OPCUA_CONFIGURED_VARIABLE_ERROR_CACHE_TTL", 0)))
 
     if not clean_node_id:
         return _build_variable_error_result(
@@ -244,15 +247,24 @@ def read_configured_opcua_variable(
             get_error_detail(exc),
         )
 
+    cache_key = _build_configured_variable_cache_key(settings, clean_node_id)
+    cached_result = _get_cached_configured_variable_result(cache_key)
+    if cached_result is not None:
+        cached_result["cache_hit"] = True
+        return cached_result
+
     if precheck_timeout is not None and float(precheck_timeout) > 0:
         try:
             _precheck_opcua_endpoint(settings, float(precheck_timeout))
         except Exception as exc:
-            return _build_variable_error_result(
+            error_result = _build_variable_error_result(
                 resolved_display_name,
                 clean_node_id,
                 get_error_detail(exc),
             )
+            error_result["cache_hit"] = False
+            _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
+            return error_result
 
     for attempt_index in range(resolved_attempts):
         try:
@@ -262,18 +274,28 @@ def read_configured_opcua_variable(
             }
 
             with opcua_client(settings, resolved_timeout) as (client, _ua):
-                return _read_variable(client, node_definition)
+                variable_result = _read_variable(client, node_definition)
+                variable_result["cache_hit"] = False
+                _cache_configured_variable_result(
+                    cache_key,
+                    variable_result,
+                    success_cache_ttl if variable_result.get("read_ok") else error_cache_ttl,
+                )
+                return variable_result
         except Exception as exc:
             last_error_detail = get_error_detail(exc)
 
             if attempt_index < resolved_attempts - 1:
                 time.sleep(0.4)
 
-    return _build_variable_error_result(
+    error_result = _build_variable_error_result(
         resolved_display_name,
         clean_node_id,
         last_error_detail,
     )
+    error_result["cache_hit"] = False
+    _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
+    return error_result
 
 
 def load_opcua_test_nodes(node_file_path):
@@ -365,6 +387,49 @@ def _build_variable_error_result(display_name, node_id, error_message):
         "server_timestamp": None,
         "error_message": error_message,
     }
+
+
+def _build_configured_variable_cache_key(settings, node_id):
+    return (
+        (settings.get("endpoint") or "").strip(),
+        (settings.get("username") or "").strip(),
+        node_id,
+    )
+
+
+def _get_cached_configured_variable_result(cache_key):
+    _cleanup_configured_variable_cache()
+    cached_entry = _CONFIGURED_VARIABLE_CACHE.get(cache_key)
+
+    if not cached_entry:
+        return None
+
+    return dict(cached_entry["result"])
+
+
+def _cache_configured_variable_result(cache_key, result, ttl_seconds):
+    _cleanup_configured_variable_cache()
+
+    if ttl_seconds <= 0:
+        _CONFIGURED_VARIABLE_CACHE.pop(cache_key, None)
+        return
+
+    _CONFIGURED_VARIABLE_CACHE[cache_key] = {
+        "expires_at": time.time() + ttl_seconds,
+        "result": dict(result),
+    }
+
+
+def _cleanup_configured_variable_cache():
+    now = time.time()
+    expired_keys = [
+        cache_key
+        for cache_key, cache_entry in _CONFIGURED_VARIABLE_CACHE.items()
+        if cache_entry.get("expires_at", 0) <= now
+    ]
+
+    for cache_key in expired_keys:
+        _CONFIGURED_VARIABLE_CACHE.pop(cache_key, None)
 
 
 def _precheck_opcua_endpoint(settings, timeout):
