@@ -5,7 +5,7 @@ from flask import Flask, redirect, request, session, url_for
 
 from app.config import Config
 from app.permissions import get_navigation, has_permission, is_navigation_item_active
-from app.routes import auth_bp, commands_bp, dashboard_bp, maintenance_bp, supervision_bp, users_bp
+from app.routes import auth_bp, commands_bp, dashboard_bp, maintenance_bp, poc_opcua_bp, supervision_bp, users_bp
 
 
 def create_app():
@@ -18,6 +18,7 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(commands_bp)
     app.register_blueprint(maintenance_bp)
+    app.register_blueprint(poc_opcua_bp)
     app.register_blueprint(supervision_bp)
     app.register_blueprint(users_bp)
 

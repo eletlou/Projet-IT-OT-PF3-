@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POC OPC UA</title>
+</head>
+<body>
+    <h1>POC faisabilite OPC UA</h1>
+    <p>Test manuel simple entre le navigateur, le serveur web et l'automate.</p>
+
+    <form id="pocOpcuaForm">
+        <p>
+            <label for="endpoint">Adresse OPC UA / IP automate</label><br>
+            <input
+                id="endpoint"
+                name="endpoint"
+                type="text"
+                value="{{ page_data.opcua_endpoint }}"
+                placeholder="opc.tcp://172.30.30.20:4840"
+                required
+            >
+        </p>
+
+        <p>
+            <label for="username">Utilisateur</label><br>
+            <input
+                id="username"
+                name="username"
+                type="text"
+                value="{{ page_data.opcua_username }}"
+                placeholder="admin"
+            >
+        </p>
+
+        <p>
+            <label for="password">Mot de passe</label><br>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                value=""
+                placeholder="wago"
+            >
+        </p>
+
+        <p>
+            <button id="pocOpcuaSubmit" type="submit">Lancer le test OPC UA</button>
+            <button id="pocOpcuaReset" type="button">Reinitialiser</button>
+        </p>
+    </form>
+
+    <p id="pocOpcuaStatus">Aucun test lance.</p>
+    <pre id="pocOpcuaJson">{}</pre>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const apiUrl = "{{ url_for('poc_opcua.test_api') }}";
+            const form = document.getElementById("pocOpcuaForm");
+            const submitButton = document.getElementById("pocOpcuaSubmit");
+            const resetButton = document.getElementById("pocOpcuaReset");
+            const status = document.getElementById("pocOpcuaStatus");
+            const output = document.getElementById("pocOpcuaJson");
+
+            function resetOutput() {
+                status.textContent = "Aucun test lance.";
+                output.textContent = "{}";
+            }
+
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                submitButton.disabled = true;
+                resetButton.disabled = true;
+                status.textContent = "Test en cours...";
+
+                try {
+                    const response = await window.fetch(apiUrl, {
+                        method: "POST",
+                        body: new window.FormData(form),
+                        credentials: "same-origin",
+                    });
+                    const payload = await response.json();
+
+                    status.textContent = payload.success ? "Test termine : succes." : "Test termine : echec.";
+                    output.textContent = JSON.stringify(payload, null, 2);
+                } catch (error) {
+                    status.textContent = "Erreur navigateur.";
+                    output.textContent = JSON.stringify(
+                        {
+                            success: false,
+                            error: error.message || "Erreur inconnue",
+                        },
+                        null,
+                        2
+                    );
+                } finally {
+                    submitButton.disabled = false;
+                    resetButton.disabled = false;
+                }
+            });
+
+            resetButton.addEventListener("click", () => {
+                form.reset();
+                document.getElementById("endpoint").value = "{{ page_data.opcua_endpoint }}";
+                document.getElementById("username").value = "{{ page_data.opcua_username }}";
+                resetOutput();
+            });
+
+            resetOutput();
+        });
+    </script>
+</body>
+</html>
