@@ -84,7 +84,11 @@
                 </div>
             </header>
 
-            <main class="page-shell">
+            <main
+                class="page-shell"
+                id="pageShell"
+                data-auto-refresh-seconds="{% block page_auto_refresh_seconds %}0{% endblock %}"
+            >
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-stack">
