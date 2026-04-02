@@ -211,9 +211,11 @@ def resolve_default_connection_settings(config):
     }
 
 
-def read_configured_opcua_variable(config, node_id, display_name=None):
+def read_configured_opcua_variable(config, node_id, display_name=None, timeout=None, attempts=1):
     clean_node_id = (node_id or "").strip()
     resolved_display_name = display_name or _derive_display_name(clean_node_id)
+    resolved_timeout = float(timeout if timeout is not None else config.get("OPCUA_TEST_TIMEOUT", 3.0))
+    resolved_attempts = max(1, int(attempts))
 
     if not clean_node_id:
         return _build_variable_error_result(
@@ -222,22 +224,29 @@ def read_configured_opcua_variable(config, node_id, display_name=None):
             "Node ID OPC UA non configure.",
         )
 
-    try:
-        settings = resolve_default_connection_settings(config)
-        timeout = float(config.get("OPCUA_TEST_TIMEOUT", 3.0))
-        node_definition = {
-            "display_name": resolved_display_name,
-            "node_id": clean_node_id,
-        }
+    last_error_detail = ""
 
-        with opcua_client(settings, timeout) as (client, _ua):
-            return _read_variable(client, node_definition)
-    except Exception as exc:
-        return _build_variable_error_result(
-            resolved_display_name,
-            clean_node_id,
-            get_error_detail(exc),
-        )
+    for attempt_index in range(resolved_attempts):
+        try:
+            settings = resolve_default_connection_settings(config)
+            node_definition = {
+                "display_name": resolved_display_name,
+                "node_id": clean_node_id,
+            }
+
+            with opcua_client(settings, resolved_timeout) as (client, _ua):
+                return _read_variable(client, node_definition)
+        except Exception as exc:
+            last_error_detail = get_error_detail(exc)
+
+            if attempt_index < resolved_attempts - 1:
+                time.sleep(0.4)
+
+    return _build_variable_error_result(
+        resolved_display_name,
+        clean_node_id,
+        last_error_detail,
+    )
 
 
 def load_opcua_test_nodes(node_file_path):

@@ -35,3 +35,9 @@ class Config:
         "OPCUA_COMMAND_COUNTER_LABEL",
         "IHM_NB_Caisse",
     )
+    OPCUA_COMMAND_COUNTER_TIMEOUT = float(
+        os.getenv("OPCUA_COMMAND_COUNTER_TIMEOUT", "8")
+    )
+    OPCUA_COMMAND_COUNTER_ATTEMPTS = int(
+        os.getenv("OPCUA_COMMAND_COUNTER_ATTEMPTS", "3")
+    )
