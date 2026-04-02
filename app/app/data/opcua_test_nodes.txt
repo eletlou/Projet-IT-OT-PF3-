@@ -1,5 +1,14 @@
 # Echantillon de NodeIds confirmes le 2 avril 2026 sur le CC100 172.30.30.20.
 # Ce fichier sert de liste de test OPC UA et ne represente pas l'integralite des 317 noeuds exposes.
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_NB_Caisse
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_Voy_Caisse_1
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_Voy_Caisse_2
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_Voy_Caisse_3
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_Voy_Caisse_4
+NS4|String||var|EAG2.Application.GVL_IHM.IHM_Voy_Caisse_5
+NS4|String||var|EAG2.Application.G7_PROD.iNbCaisseIHM
+NS4|String||var|EAG2.Application.G7_PROD.stCurrentOrder.iCaisseDemande
+NS4|String||var|EAG2.Application.G7_PROD.stCurrentOrder.iCaisseProduite
 NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.xHeartbeat
 NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.eMode
 NS4|String||var|EAG2.Application.GVL_OPCUA.OPCUA.eStep

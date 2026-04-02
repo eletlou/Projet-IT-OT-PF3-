@@ -29,11 +29,11 @@ class Config:
     OPCUA_TEST_PORT = int(os.getenv("OPCUA_TEST_PORT", "5051"))
     OPCUA_COMMAND_COUNTER_NODE_ID = os.getenv(
         "OPCUA_COMMAND_COUNTER_NODE_ID",
-        "ns=4;s=|var|EAG2.Application.GVL_OPCUA.OPCUA.uiBoxesCompleted",
+        "ns=4;s=|var|EAG2.Application.GVL_IHM.IHM_NB_Caisse",
     )
     OPCUA_COMMAND_COUNTER_LABEL = os.getenv(
         "OPCUA_COMMAND_COUNTER_LABEL",
-        "Caisses produites",
+        "Num caisse",
     )
     OPCUA_COMMAND_COUNTER_TIMEOUT = float(
         os.getenv("OPCUA_COMMAND_COUNTER_TIMEOUT", "8")
