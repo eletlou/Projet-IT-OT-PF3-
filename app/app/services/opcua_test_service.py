@@ -222,80 +222,140 @@ def read_configured_opcua_variable(
     attempts=1,
     precheck_timeout=None,
 ):
-    clean_node_id = (node_id or "").strip()
-    resolved_display_name = display_name or _derive_display_name(clean_node_id)
+    variable_results = read_configured_opcua_variables(
+        config,
+        [
+            {
+                "display_name": display_name,
+                "node_id": node_id,
+            }
+        ],
+        timeout=timeout,
+        attempts=attempts,
+        precheck_timeout=precheck_timeout,
+    )
+    if not variable_results:
+        clean_node_id = (node_id or "").strip()
+        resolved_display_name = display_name or _derive_display_name(clean_node_id)
+        return _build_variable_error_result(
+            resolved_display_name,
+            clean_node_id,
+            "Aucune variable OPC UA n'a ete fournie.",
+        )
+    return variable_results[0]
+
+
+def read_configured_opcua_variables(
+    config,
+    node_definitions,
+    timeout=None,
+    attempts=1,
+    precheck_timeout=None,
+):
     resolved_timeout = float(timeout if timeout is not None else config.get("OPCUA_TEST_TIMEOUT", 3.0))
     resolved_attempts = max(1, int(attempts))
     success_cache_ttl = max(0.0, float(config.get("OPCUA_CONFIGURED_VARIABLE_CACHE_TTL", 0)))
     error_cache_ttl = max(0.0, float(config.get("OPCUA_CONFIGURED_VARIABLE_ERROR_CACHE_TTL", 0)))
+    variable_results = []
+    pending_reads = []
 
-    if not clean_node_id:
-        return _build_variable_error_result(
-            resolved_display_name,
-            clean_node_id,
-            "Node ID OPC UA non configure.",
-        )
+    for index, node_definition in enumerate(node_definitions or []):
+        clean_node_id = ((node_definition or {}).get("node_id") or "").strip()
+        resolved_display_name = (node_definition or {}).get("display_name") or _derive_display_name(clean_node_id)
+        normalized_node_definition = {
+            "display_name": resolved_display_name,
+            "node_id": clean_node_id,
+        }
 
-    last_error_detail = ""
+        if not clean_node_id:
+            error_result = _build_variable_error_result(
+                resolved_display_name,
+                clean_node_id,
+                "Node ID OPC UA non configure.",
+            )
+            error_result["cache_hit"] = False
+            variable_results.append(error_result)
+            continue
+
+        variable_results.append(None)
+        pending_reads.append((index, normalized_node_definition))
+
+    if not pending_reads:
+        return variable_results
 
     try:
         settings = resolve_default_connection_settings(config)
     except Exception as exc:
-        return _build_variable_error_result(
-            resolved_display_name,
-            clean_node_id,
-            get_error_detail(exc),
-        )
+        for index, node_definition in pending_reads:
+            error_result = _build_variable_error_result(
+                node_definition["display_name"],
+                node_definition["node_id"],
+                get_error_detail(exc),
+            )
+            error_result["cache_hit"] = False
+            variable_results[index] = error_result
+        return variable_results
 
-    cache_key = _build_configured_variable_cache_key(settings, clean_node_id)
-    cached_result = _get_cached_configured_variable_result(cache_key)
-    if cached_result is not None:
-        cached_result["cache_hit"] = True
-        return cached_result
+    unresolved_reads = []
+    for index, node_definition in pending_reads:
+        cache_key = _build_configured_variable_cache_key(settings, node_definition["node_id"])
+        cached_result = _get_cached_configured_variable_result(cache_key)
+        if cached_result is not None:
+            cached_result["cache_hit"] = True
+            variable_results[index] = cached_result
+            continue
+        unresolved_reads.append((index, node_definition, cache_key))
+
+    if not unresolved_reads:
+        return variable_results
 
     if precheck_timeout is not None and float(precheck_timeout) > 0:
         try:
             _precheck_opcua_endpoint(settings, float(precheck_timeout))
         except Exception as exc:
-            error_result = _build_variable_error_result(
-                resolved_display_name,
-                clean_node_id,
-                get_error_detail(exc),
-            )
-            error_result["cache_hit"] = False
-            _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
-            return error_result
+            for index, node_definition, cache_key in unresolved_reads:
+                error_result = _build_variable_error_result(
+                    node_definition["display_name"],
+                    node_definition["node_id"],
+                    get_error_detail(exc),
+                )
+                error_result["cache_hit"] = False
+                _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
+                variable_results[index] = error_result
+            return variable_results
+
+    last_error_detail = ""
 
     for attempt_index in range(resolved_attempts):
         try:
-            node_definition = {
-                "display_name": resolved_display_name,
-                "node_id": clean_node_id,
-            }
-
             with opcua_client(settings, resolved_timeout) as (client, _ua):
-                variable_result = _read_variable(client, node_definition)
-                variable_result["cache_hit"] = False
-                _cache_configured_variable_result(
-                    cache_key,
-                    variable_result,
-                    success_cache_ttl if variable_result.get("read_ok") else error_cache_ttl,
-                )
-                return variable_result
+                for index, node_definition, cache_key in unresolved_reads:
+                    variable_result = _read_variable(client, node_definition)
+                    variable_result["cache_hit"] = False
+                    _cache_configured_variable_result(
+                        cache_key,
+                        variable_result,
+                        success_cache_ttl if variable_result.get("read_ok") else error_cache_ttl,
+                    )
+                    variable_results[index] = variable_result
+                return variable_results
         except Exception as exc:
             last_error_detail = get_error_detail(exc)
 
             if attempt_index < resolved_attempts - 1:
                 time.sleep(0.4)
 
-    error_result = _build_variable_error_result(
-        resolved_display_name,
-        clean_node_id,
-        last_error_detail,
-    )
-    error_result["cache_hit"] = False
-    _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
-    return error_result
+    for index, node_definition, cache_key in unresolved_reads:
+        error_result = _build_variable_error_result(
+            node_definition["display_name"],
+            node_definition["node_id"],
+            last_error_detail,
+        )
+        error_result["cache_hit"] = False
+        _cache_configured_variable_result(cache_key, error_result, error_cache_ttl)
+        variable_results[index] = error_result
+
+    return variable_results
 
 
 def load_opcua_test_nodes(node_file_path):

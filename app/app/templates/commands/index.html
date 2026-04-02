@@ -41,6 +41,49 @@
     </article>
 </section>
 
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <p class="panel-kicker">Commande active</p>
+            <h3>Donnees automate OPC UA</h3>
+        </div>
+        <div class="list-row">
+            <span class="status-pill status-{{ page_data.opcua_current_order.status_slug }}">
+                {{ page_data.opcua_current_order.status_label }}
+            </span>
+            <small>{{ page_data.opcua_current_order.source_timestamp|datetimefr }}</small>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <span>Date debut</span>
+            <strong>{{ page_data.opcua_current_order.date_debut|datefr }}</strong>
+            <p>Heure : {{ page_data.opcua_current_order.heure_debut }}</p>
+        </div>
+        <div class="detail-card">
+            <span>Date fin</span>
+            <strong>{{ page_data.opcua_current_order.date_fin|datefr }}</strong>
+            <p>Heure : {{ page_data.opcua_current_order.heure_fin }}</p>
+        </div>
+        <div class="detail-card">
+            <span>Temps total production</span>
+            <strong>{{ page_data.opcua_current_order.duree_production_min }}</strong>
+            <p>Minutes estimees depuis l'automate</p>
+        </div>
+        <div class="detail-card">
+            <span>Caisses demandees</span>
+            <strong>{{ page_data.opcua_current_order.quantite_caisses_demandee }}</strong>
+            <p>Valeur automate</p>
+        </div>
+        <div class="detail-card">
+            <span>Caisses produites</span>
+            <strong>{{ page_data.opcua_current_order.quantite_caisses_produite }}</strong>
+            <p>Valeur automate</p>
+        </div>
+    </div>
+</section>
+
 <section class="content-grid content-grid-two">
     <article class="panel-card">
         <div class="panel-header">
