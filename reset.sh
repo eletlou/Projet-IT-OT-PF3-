@@ -11,6 +11,12 @@ else
     exit 1
 fi
 
+if docker ps -a --format '{{.Names}}' | grep -Eq '^les_viviers_(web|mysql)_client$'; then
+    echo "Attention : une ancienne stack client (_client) est encore presente sur cette machine."
+    echo "Elle peut continuer a semer la confusion tant qu'elle n'est pas arretee ou retiree."
+    echo
+fi
+
 "${COMPOSE_CMD[@]}" down -v
 "${COMPOSE_CMD[@]}" up --build -d
 

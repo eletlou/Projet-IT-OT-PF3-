@@ -11,6 +11,12 @@ else
     exit 1
 fi
 
+if docker ps -a --format '{{.Names}}' | grep -Eq '^les_viviers_(web|mysql)_client$'; then
+    echo "Attention : une ancienne stack client (_client) est encore presente sur cette machine."
+    echo "Elle peut afficher un code ou une base differents de l'application principale sur le port 5005."
+    echo
+fi
+
 if "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^web$"; then
     "${COMPOSE_CMD[@]}" start
 

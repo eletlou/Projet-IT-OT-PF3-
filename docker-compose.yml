@@ -1,11 +1,11 @@
-name: les_viviers_de_noirmoutier_client
+name: les_viviers_de_noirmoutier
 
 services:
   db:
     build:
       context: .
       dockerfile: db/Dockerfile
-    container_name: les_viviers_mysql_client
+    container_name: les_viviers_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -13,7 +13,7 @@ services:
     ports:
       - "${MYSQL_PUBLIC_PORT:-3305}:3306"
     volumes:
-      - mysql_data_client:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     healthcheck:
       test:
         [
@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
-    container_name: les_viviers_web_client
+    container_name: les_viviers_web
     restart: unless-stopped
     depends_on:
       - db
@@ -45,12 +45,14 @@ services:
       OPCUA_TEST_USERNAME: ${OPCUA_TEST_USERNAME:-admin}
       OPCUA_TEST_PASSWORD: ${OPCUA_TEST_PASSWORD:-wago}
       OPCUA_TEST_TIMEOUT: ${OPCUA_TEST_TIMEOUT:-3}
-      OPCUA_COMMAND_COUNTER_NODE_ID: ${OPCUA_COMMAND_COUNTER_NODE_ID:-ns=4;s=|var|EAG2.Application.GVL_IHM.IHM_NB_Caisse}
+      OPCUA_COMMAND_COUNTER_NODE_ID: ${OPCUA_COMMAND_COUNTER_NODE_ID:-ns=4;s=|var|CC100-638A7C.Application.GVL_IHM.IHM_NB_Caisse}
       OPCUA_COMMAND_COUNTER_LABEL: ${OPCUA_COMMAND_COUNTER_LABEL:-Num caisse}
       OPCUA_COMMAND_COUNTER_TIMEOUT: ${OPCUA_COMMAND_COUNTER_TIMEOUT:-8}
       OPCUA_COMMAND_COUNTER_ATTEMPTS: ${OPCUA_COMMAND_COUNTER_ATTEMPTS:-3}
     ports:
       - "${APP_PORT:-5005}:5000"
+    volumes:
+      - ./app:/app
 
 volumes:
-  mysql_data_client:
+  mysql_data:
