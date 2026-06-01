@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: db/Dockerfile
+    pull_policy: build
     container_name: les_viviers_mysql
     restart: unless-stopped
     environment:
@@ -37,6 +38,7 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
+    pull_policy: build
     container_name: les_viviers_web
     restart: unless-stopped
     depends_on:
