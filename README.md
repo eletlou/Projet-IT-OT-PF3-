@@ -24,7 +24,7 @@ Le deploiement client repose sur 3 briques principales :
 - `db` : base de donnees MySQL qui stocke les utilisateurs, commandes, alertes et donnees de supervision
 - `adminer` : interface web pour consulter et administrer la base de donnees
 
-Le fichier `docker-compose.portainer.yml` orchestre ces 3 services sur la VM cliente.
+Le fichier `docker-compose.yml` orchestre ces 3 services sur la VM cliente.
 
 ## 3. Demarrage du projet
 
@@ -80,9 +80,6 @@ Pour se connecter a la base depuis Adminer :
 Le port `8081` sert uniquement a ouvrir l'interface web Adminer. Flask se
 connecte directement au service MySQL `db` sur le port interne `3306`.
 
-La stack locale `docker-compose.yml` reste disponible uniquement pour un
-developpement hors site. Elle n'est pas utilisee sur la VM cliente.
-
 ## 5. Comptes de demonstration
 
 - `admin / admin1234`
@@ -112,8 +109,7 @@ APP_PORT=5005
 
 ## 7. Arborescence utile
 
-- `docker-compose.yml` : declaration de la stack locale `web` + `db` + `adminer`
-- `docker-compose.portainer.yml` : declaration de la stack client `web` + `db` + `adminer`
+- `docker-compose.yml` : declaration de la stack client `web` + `db` + `adminer`
 - `db/01-schema.sql` : creation de la structure de la base
 - `db/02-bootstrap.sql` : insertion des referentiels initiaux sans mesures de production fictives
 - `db/manual/reset-production-data.sql` : nettoyage manuel des anciennes donnees operationnelles
@@ -185,7 +181,7 @@ Synthese utile :
 Etapes conseillees :
 
 1. pousser le code a jour sur GitHub
-2. depuis Portainer, creer une stack Git a partir du fichier `docker-compose.portainer.yml`
+2. depuis Portainer, creer une stack Git a partir du fichier `docker-compose.yml`
 3. definir au minimum les variables d'environnement suivantes :
    - `MYSQL_ROOT_PASSWORD`
    - `SESSION_SECRET`
@@ -205,7 +201,7 @@ Point de vigilance :
 - si le volume contient encore d'anciennes valeurs fictives, importer manuellement `db/manual/reset-production-data.sql` depuis Adminer
 - remplacer les mots de passe des comptes initiaux avant la mise en production
 - le port web Adminer `8081` ne remplace pas le port MySQL interne `3306`
-- le fichier `docker-compose.portainer.yml` integre le code dans l'image et ne monte pas le dossier local `./app`, afin que le deploiement ne depende pas de la prise en charge des volumes relatifs par Portainer
+- le fichier `docker-compose.yml` integre le code dans l'image et ne monte pas le dossier local `./app`, afin que le deploiement ne depende pas de la prise en charge des volumes relatifs par Portainer
 - la base MySQL reste accessible aux conteneurs `web` et `adminer` sur le reseau Docker interne mais son port `3306` n'est pas publie sur la VM client
 - l'ecran Supervision lit les Node IDs declares dans `app/app/data/opcua_test_nodes.txt` directement depuis le WAGO, sans charger de fausses valeurs SQL
 - avant livraison client, valider la politique de securite OPC UA demandee sur le WAGO et la gestion de reconnexion

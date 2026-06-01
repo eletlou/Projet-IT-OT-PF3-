@@ -1,4 +1,0 @@
-FROM mysql:8.0.35
-
-# La stack client initialise uniquement la structure et les referentiels minimums.
-COPY db/01-schema.sql db/02-bootstrap.sql /docker-entrypoint-initdb.d/

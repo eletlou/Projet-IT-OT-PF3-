@@ -32,5 +32,5 @@ fi
 
 echo
 echo "${STATUS_MESSAGE}"
-echo "Flask   : http://localhost:5005"
-echo "Adminer : http://localhost:8081"
+echo "Flask   : http://10.0.1.30:5005"
+echo "Adminer : http://10.0.1.30:8081"

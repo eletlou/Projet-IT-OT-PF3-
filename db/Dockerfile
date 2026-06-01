@@ -1,3 +1,4 @@
 FROM mysql:8.0.35
 
-COPY db/*.sql /docker-entrypoint-initdb.d/
+# Initialise uniquement la structure et les referentiels minimums.
+COPY db/01-schema.sql db/02-bootstrap.sql /docker-entrypoint-initdb.d/
