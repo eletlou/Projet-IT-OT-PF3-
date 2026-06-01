@@ -118,8 +118,8 @@
     <article class="panel-card">
         <div class="panel-header">
             <div>
-                <p class="panel-kicker">Variables OPCUA</p>
-                <h3>Etat des variables exposees</h3>
+                <p class="panel-kicker">Variables OPC UA en direct</p>
+                <h3>Valeurs lues depuis l'automate</h3>
             </div>
         </div>
 
@@ -138,8 +138,12 @@
                         <tr>
                             <td>{{ variable.nom_variable }}</td>
                             <td>{{ variable.valeur_actuelle }} {{ variable.unite or '' }}</td>
-                            <td><span class="status-pill status-{{ variable.qualite }}">{{ variable.qualite }}</span></td>
+                            <td><span class="status-pill status-{{ variable.qualite }}">{{ variable.qualite_label }}</span></td>
                             <td>{{ variable.noeud_opcua }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">Aucun Node ID OPC UA configure.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

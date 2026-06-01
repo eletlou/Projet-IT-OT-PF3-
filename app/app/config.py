@@ -27,6 +27,11 @@ class Config:
     OPCUA_TEST_PASSWORD = os.getenv("OPCUA_TEST_PASSWORD", "wago")
     OPCUA_TEST_TIMEOUT = float(os.getenv("OPCUA_TEST_TIMEOUT", "3"))
     OPCUA_TEST_PORT = int(os.getenv("OPCUA_TEST_PORT", "5051"))
+    OPCUA_LIVE_TIMEOUT = float(os.getenv("OPCUA_LIVE_TIMEOUT", "3"))
+    OPCUA_LIVE_ATTEMPTS = int(os.getenv("OPCUA_LIVE_ATTEMPTS", "1"))
+    OPCUA_LIVE_PRECHECK_TIMEOUT = float(
+        os.getenv("OPCUA_LIVE_PRECHECK_TIMEOUT", "0.5")
+    )
     OPCUA_CONFIGURED_VARIABLE_CACHE_TTL = float(
         os.getenv("OPCUA_CONFIGURED_VARIABLE_CACHE_TTL", "15")
     )

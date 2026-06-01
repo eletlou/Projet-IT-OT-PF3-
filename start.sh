@@ -20,6 +20,10 @@ fi
 if "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^web$"; then
     "${COMPOSE_CMD[@]}" start
 
+    if ! "${COMPOSE_CMD[@]}" ps -a --services 2>/dev/null | grep -q "^adminer$"; then
+        "${COMPOSE_CMD[@]}" up -d --no-deps adminer
+    fi
+
     STATUS_MESSAGE="Application relancee sans recreer les conteneurs."
 else
     "${COMPOSE_CMD[@]}" up --build -d
@@ -29,3 +33,4 @@ fi
 echo
 echo "${STATUS_MESSAGE}"
 echo "Flask   : http://localhost:5005"
+echo "Adminer : http://localhost:8081"

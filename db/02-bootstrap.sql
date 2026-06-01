@@ -1,3 +1,6 @@
+-- Referentiels minimums requis par l'application.
+-- Ne pas ajouter ici de commandes, mesures, alertes ou historiques fictifs.
+
 INSERT INTO Role (id_role, code_role, libelle_role, description_role)
 VALUES
     (1, 'administrateur', 'Administrateur', 'Gere les utilisateurs et l acces global a l application.'),
@@ -46,9 +49,8 @@ VALUES
     (2, 'REC-STJ', '2 sacs Saint Jacques', 0, 2, 5, 'Conditionnement 100 pourcent saint jacques'),
     (3, 'REC-MIX', '1 sac Huitre + 1 sac Saint Jacques', 1, 1, 5, 'Conditionnement mixte');
 
--- Les donnees ci-dessous sont volontairement laissees vides au demarrage.
--- Elles doivent desormais venir du terrain, de synchronisations applicatives,
--- ou d'import SQL explicite, mais plus d'un seed de demonstration.
+-- Les donnees operationnelles sont volontairement laissees vides au demarrage.
+-- Les variables de supervision sont lues en direct depuis l'automate en OPC UA.
 
 INSERT INTO SeuilAlerte (id_seuil_alerte, indicateur, valeur_seuil, unite, niveau)
 VALUES
