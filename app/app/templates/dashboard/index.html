@@ -141,15 +141,25 @@
     <article class="panel-card">
         <div class="panel-header">
             <div>
-                <p class="panel-kicker">Production courante</p>
-                <h3>Commande active</h3>
+                <p class="panel-kicker">Production courante OPC UA</p>
+                <h3>Valeurs lues depuis l'automate</h3>
+            </div>
+            <div class="list-row">
+                <span class="status-pill status-{{ page_data.opcua_production_snapshot.status_slug }}">
+                    {{ page_data.opcua_production_snapshot.status_label }}
+                </span>
+                <small>{{ page_data.opcua_production_snapshot.source_timestamp|datetimefr }}</small>
             </div>
         </div>
 
         <div class="detail-grid">
             <div class="detail-card">
-                <span>Cadence actuelle</span>
-                <strong>{{ page_data.latest_production.cadence_caisses_h }} caisses/h</strong>
+                <span>Caisse courante</span>
+                <strong>{{ page_data.latest_production.numero_caisse }}</strong>
+            </div>
+            <div class="detail-card">
+                <span>Caisses demandees</span>
+                <strong>{{ page_data.latest_production.caisses_demandees }}</strong>
             </div>
             <div class="detail-card">
                 <span>Caisses produites</span>

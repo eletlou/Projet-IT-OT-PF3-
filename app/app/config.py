@@ -72,6 +72,27 @@ class Config:
     OPCUA_DASHBOARD_LINE_STATUS_PRECHECK_TIMEOUT = float(
         os.getenv("OPCUA_DASHBOARD_LINE_STATUS_PRECHECK_TIMEOUT", "0.5")
     )
+    OPCUA_DASHBOARD_CURRENT_BOX_NODE_ID = os.getenv(
+        "OPCUA_DASHBOARD_CURRENT_BOX_NODE_ID",
+        "ns=4;s=|var|CC100-638A7C.Application.GVL_IHM.IHM_NB_Caisse",
+    )
+    OPCUA_DASHBOARD_OYSTER_BAGS_NODE_ID = os.getenv(
+        "OPCUA_DASHBOARD_OYSTER_BAGS_NODE_ID",
+        "ns=4;s=|var|CC100-638A7C.Application.GVL_IHM.IHM_NB_Huitre",
+    )
+    OPCUA_DASHBOARD_SCALLOP_BAGS_NODE_ID = os.getenv(
+        "OPCUA_DASHBOARD_SCALLOP_BAGS_NODE_ID",
+        "ns=4;s=|var|CC100-638A7C.Application.GVL_IHM.IHM_NB_SJ",
+    )
+    OPCUA_DASHBOARD_PRODUCTION_TIMEOUT = float(
+        os.getenv("OPCUA_DASHBOARD_PRODUCTION_TIMEOUT", "3")
+    )
+    OPCUA_DASHBOARD_PRODUCTION_ATTEMPTS = int(
+        os.getenv("OPCUA_DASHBOARD_PRODUCTION_ATTEMPTS", "1")
+    )
+    OPCUA_DASHBOARD_PRODUCTION_PRECHECK_TIMEOUT = float(
+        os.getenv("OPCUA_DASHBOARD_PRODUCTION_PRECHECK_TIMEOUT", "0.5")
+    )
     OPCUA_CURRENT_ORDER_START_NODE_ID = os.getenv(
         "OPCUA_CURRENT_ORDER_START_NODE_ID",
         "ns=4;s=|var|CC100-638A7C.Application.G7_PROD.stCurrentOrder.sDateDebut",

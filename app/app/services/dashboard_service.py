@@ -4,7 +4,6 @@ from app.repositories.dashboard_repository import (
     fetch_alert_summary,
     fetch_dashboard_summary,
     fetch_latest_automation,
-    fetch_latest_production,
     fetch_line_status,
     fetch_maintenance_focus,
     fetch_maintenance_summary,
@@ -13,7 +12,7 @@ from app.repositories.dashboard_repository import (
     fetch_recent_logs,
     fetch_user_summary,
 )
-from app.services.opcua_test_service import read_configured_opcua_variable
+from app.services.opcua_test_service import read_configured_opcua_variables
 
 
 def get_dashboard_view_model():
@@ -23,19 +22,13 @@ def get_dashboard_view_model():
     users_summary = fetch_user_summary()
     line_status = _build_line_status(fetch_line_status())
     latest_automation = _build_latest_automation(fetch_latest_automation())
-    latest_production = _build_latest_production(fetch_latest_production())
     recent_commands = fetch_recent_commands()
     recent_alerts = fetch_recent_alerts()
     maintenance_focus = fetch_maintenance_focus()
     recent_logs = fetch_recent_logs()
-    opcua_line_status = read_configured_opcua_variable(
-        current_app.config,
-        current_app.config.get("OPCUA_DASHBOARD_LINE_STATUS_NODE_ID"),
-        current_app.config.get("OPCUA_DASHBOARD_LINE_STATUS_LABEL"),
-        timeout=current_app.config.get("OPCUA_DASHBOARD_LINE_STATUS_TIMEOUT"),
-        attempts=current_app.config.get("OPCUA_DASHBOARD_LINE_STATUS_ATTEMPTS", 1),
-        precheck_timeout=current_app.config.get("OPCUA_DASHBOARD_LINE_STATUS_PRECHECK_TIMEOUT"),
-    )
+    opcua_snapshot = _read_dashboard_opcua_snapshot(current_app.config)
+    opcua_line_status = opcua_snapshot["line_status"]
+    latest_production = _build_live_production(opcua_snapshot)
 
     if opcua_line_status["read_ok"]:
         line_status = _merge_opcua_line_status(line_status, opcua_line_status)
@@ -58,6 +51,7 @@ def get_dashboard_view_model():
         },
         "line_status": line_status,
         "opcua_line_status": opcua_line_status,
+        "opcua_production_snapshot": opcua_snapshot,
         "latest_automation": latest_automation,
         "latest_production": latest_production,
         "recent_commands": recent_commands,
@@ -87,14 +81,106 @@ def _build_latest_automation(latest_automation):
     }
 
 
-def _build_latest_production(latest_production):
-    latest_production = latest_production or {}
+def _build_live_production(opcua_snapshot):
     return {
-        "cadence_caisses_h": latest_production.get("cadence_caisses_h") or 0,
-        "caisses_produites": latest_production.get("caisses_produites") or 0,
-        "sacs_huitres_consommes": latest_production.get("sacs_huitres_consommes") or 0,
-        "sacs_st_jacques_consommes": latest_production.get("sacs_st_jacques_consommes") or 0,
+        "numero_caisse": _read_live_value(opcua_snapshot["current_box"]),
+        "caisses_demandees": _read_live_value(opcua_snapshot["requested_boxes"]),
+        "caisses_produites": _read_live_value(opcua_snapshot["produced_boxes"]),
+        "sacs_huitres_consommes": _read_live_value(opcua_snapshot["oyster_bags"]),
+        "sacs_st_jacques_consommes": _read_live_value(opcua_snapshot["scallop_bags"]),
     }
+
+
+def _read_dashboard_opcua_snapshot(config):
+    variable_definitions = [
+        {
+            "key": "line_status",
+            "display_name": config.get("OPCUA_DASHBOARD_LINE_STATUS_LABEL"),
+            "node_id": config.get("OPCUA_DASHBOARD_LINE_STATUS_NODE_ID"),
+        },
+        {
+            "key": "current_box",
+            "display_name": "Numero caisse courant",
+            "node_id": config.get("OPCUA_DASHBOARD_CURRENT_BOX_NODE_ID"),
+        },
+        {
+            "key": "requested_boxes",
+            "display_name": "Caisses demandees",
+            "node_id": config.get("OPCUA_CURRENT_ORDER_REQUESTED_BOXES_NODE_ID"),
+        },
+        {
+            "key": "produced_boxes",
+            "display_name": "Caisses produites",
+            "node_id": config.get("OPCUA_CURRENT_ORDER_PRODUCED_BOXES_NODE_ID"),
+        },
+        {
+            "key": "oyster_bags",
+            "display_name": "Sacs huitres",
+            "node_id": config.get("OPCUA_DASHBOARD_OYSTER_BAGS_NODE_ID"),
+        },
+        {
+            "key": "scallop_bags",
+            "display_name": "Sacs saint jacques",
+            "node_id": config.get("OPCUA_DASHBOARD_SCALLOP_BAGS_NODE_ID"),
+        },
+    ]
+    variable_results = read_configured_opcua_variables(
+        config,
+        variable_definitions,
+        timeout=max(
+            float(config.get("OPCUA_DASHBOARD_LINE_STATUS_TIMEOUT", 3)),
+            float(config.get("OPCUA_DASHBOARD_PRODUCTION_TIMEOUT", 3)),
+        ),
+        attempts=max(
+            int(config.get("OPCUA_DASHBOARD_LINE_STATUS_ATTEMPTS", 1)),
+            int(config.get("OPCUA_DASHBOARD_PRODUCTION_ATTEMPTS", 1)),
+        ),
+        precheck_timeout=max(
+            float(config.get("OPCUA_DASHBOARD_LINE_STATUS_PRECHECK_TIMEOUT", 0)),
+            float(config.get("OPCUA_DASHBOARD_PRODUCTION_PRECHECK_TIMEOUT", 0)),
+        ),
+    )
+    results_by_key = {
+        variable_definition["key"]: variable_result
+        for variable_definition, variable_result in zip(variable_definitions, variable_results)
+    }
+    production_results = [
+        results_by_key[key]
+        for key in ("current_box", "requested_boxes", "produced_boxes", "oyster_bags", "scallop_bags")
+    ]
+    successful_reads = sum(1 for variable_result in production_results if variable_result.get("read_ok"))
+
+    if successful_reads == len(production_results):
+        status_label = "Synchronise"
+        status_slug = "good"
+    elif successful_reads:
+        status_label = "Partiel"
+        status_slug = "warning"
+    else:
+        status_label = "Indisponible"
+        status_slug = "error"
+
+    return {
+        **results_by_key,
+        "status_label": status_label,
+        "status_slug": status_slug,
+        "source_timestamp": _resolve_latest_source_timestamp(production_results),
+    }
+
+
+def _read_live_value(variable_result):
+    if not variable_result.get("read_ok"):
+        return "-"
+    return variable_result.get("value_display") or "-"
+
+
+def _resolve_latest_source_timestamp(variable_results):
+    timestamps = [
+        variable_result.get("source_timestamp")
+        for variable_result in variable_results
+        if variable_result.get("source_timestamp")
+    ]
+    return max(timestamps) if timestamps else None
 
 
 def _merge_opcua_line_status(line_status, opcua_line_status):
